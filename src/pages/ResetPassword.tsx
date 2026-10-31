@@ -81,7 +81,7 @@ const ResetPassword = () => {
 
           {error && <p className="mt-4 rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">{error}</p>}
           {message && <p className="mt-4 rounded-lg border border-border bg-secondary/30 p-3 text-sm text-muted-foreground">{message}</p>}
-          <a href="/admin" className="mt-5 inline-flex text-sm font-semibold text-primary hover:text-primary/80">Return to admin</a>
+          <a href="/" className="mt-5 inline-flex text-sm font-semibold text-primary hover:text-primary/80">Return to home</a>
         </form>
       </section>
     </main>
