@@ -47,7 +47,7 @@ const ResetPassword = () => {
     if (error) {
       setError(error.message);
     } else {
-      setMessage("Password updated successfully. You can return to the admin page.");
+      setMessage("Password updated successfully. You can now close this page.");
       setPassword("");
       setConfirmPassword("");
     }
@@ -66,7 +66,7 @@ const ResetPassword = () => {
               <GradientText>Reset Password</GradientText>
             </h1>
             <p className="mt-3 text-muted-foreground">
-              {hasRecoveryToken ? "Set a new password for your admin account." : "Open this page from the recovery email link."}
+              {hasRecoveryToken ? "Set a new password for your account." : "Open this page from the recovery email link."}
             </p>
           </div>
 
@@ -81,7 +81,7 @@ const ResetPassword = () => {
 
           {error && <p className="mt-4 rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">{error}</p>}
           {message && <p className="mt-4 rounded-lg border border-border bg-secondary/30 p-3 text-sm text-muted-foreground">{message}</p>}
-          <a href="/admin" className="mt-5 inline-flex text-sm font-semibold text-primary hover:text-primary/80">Return to admin</a>
+          <a href="/" className="mt-5 inline-flex text-sm font-semibold text-primary hover:text-primary/80">Return to home</a>
         </form>
       </section>
     </main>

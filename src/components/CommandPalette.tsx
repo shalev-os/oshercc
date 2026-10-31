@@ -18,7 +18,6 @@ import {
   Github,
   Linkedin,
   Download,
-  ShieldCheck,
   Languages,
   Home,
   Sparkles,
@@ -112,10 +111,6 @@ const CommandPalette = () => {
           <CommandItem onSelect={() => go("contact")}>
             <Mail className="me-2 h-4 w-4" />
             <span>{t("nav.contact")}</span>
-          </CommandItem>
-          <CommandItem onSelect={() => navigate("/admin")}>
-            <ShieldCheck className="me-2 h-4 w-4" />
-            <span>{lang === "he" ? "אדמין" : "Admin"}</span>
           </CommandItem>
         </CommandGroup>
 
