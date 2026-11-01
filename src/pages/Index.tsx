@@ -1,10 +1,9 @@
-import { useState, useCallback, lazy, Suspense, useEffect, type ComponentType } from "react";
+import { lazy, Suspense, useEffect, type ComponentType } from "react";
 import Navbar from "@/components/Navbar";
 import Hero from "@/components/Hero";
 import About from "@/components/About";
 import Skills from "@/components/Skills";
 import Footer from "@/components/Footer";
-import LoadingScreen from "@/components/LoadingScreen";
 import SkipToContent from "@/components/SkipToContent";
 import NetworkBackground from "@/components/NetworkBackground";
 
@@ -46,9 +45,6 @@ const SnakeEasterEgg = lazyWithRetry(importSnake);
 const CommandPalette = lazyWithRetry(importCommandPalette);
 
 const Index = () => {
-  const [isLoaded, setIsLoaded] = useState(false);
-  const handleLoadComplete = useCallback(() => setIsLoaded(true), []);
-
   // Warm up lazy chunks during idle time so they're ready by the time
   // the user scrolls to certificates etc.
   useEffect(() => {
@@ -71,10 +67,9 @@ const Index = () => {
   }, []);
 
   return (
-    <div className="min-h-screen relative pb-32">
+    <div className="min-h-screen relative">
       <SkipToContent />
       <NetworkBackground />
-      <LoadingScreen onComplete={handleLoadComplete} />
       <Suspense fallback={null}>
         <KonamiEasterEgg />
         <SnakeEasterEgg />
