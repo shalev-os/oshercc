@@ -1,0 +1,103 @@
+import { useState, useEffect, useMemo } from "react";
+import { Menu, X } from "lucide-react";
+import MagneticButton from "./MagneticButton";
+import useActiveSection from "@/hooks/useActiveSection";
+import { useLanguage } from "@/contexts/LanguageContext";
+
+const Navbar = () => {
+  const [isMobileOpen, setIsMobileOpen] = useState(false);
+  const { lang, t } = useLanguage();
+
+  const sectionIds = useMemo(() => ["about", "skills", "experience", "education", "contact"], []);
+  const activeSection = useActiveSection(sectionIds);
+
+  useEffect(() => {
+    document.body.style.overflow = isMobileOpen ? "hidden" : "";
+    return () => { document.body.style.overflow = ""; };
+  }, [isMobileOpen]);
+
+  const navLinks = [
+    { href: "#about", label: t("nav.about"), id: "about" },
+    { href: "#skills", label: t("nav.skills"), id: "skills" },
+    { href: "#experience", label: t("nav.experience"), id: "experience" },
+    { href: "#education", label: t("nav.certifications"), id: "education" },
+    { href: "#contact", label: t("nav.contact"), id: "contact" },
+  ];
+
+  return (
+    <>
+      <nav
+        className="fixed top-0 inset-x-0 z-[200]"
+        role="navigation"
+        aria-label="Main navigation"
+      >
+        <div className="container mx-auto px-4 sm:px-6 py-3 sm:py-4">
+        <div className="flex items-center justify-between relative">
+            <a href="#" className="font-display text-xl sm:text-2xl font-bold text-gradient" aria-label="Shalev Osher - Home">
+              {lang === "he" ? "שליו אושר" : "Shalev Osher"}
+            </a>
+
+            {/* Desktop links - centered */}
+            <div className="hidden md:flex items-center gap-2 absolute left-1/2 -translate-x-1/2">
+              {navLinks.map((link) => (
+                <MagneticButton key={link.href} strength={0.2} radius={30}>
+                  <a
+                    href={link.href}
+                    className={`font-display text-base font-semibold px-4 py-2 rounded-lg transition-colors ${
+                      activeSection === link.id
+                        ? "text-primary bg-primary/10"
+                        : "text-foreground/80 hover:text-primary hover:bg-primary/5"
+                    }`}
+                  >
+                    {link.label}
+                  </a>
+                </MagneticButton>
+              ))}
+            </div>
+
+            <div className="flex md:hidden items-center gap-2">
+              <MagneticButton strength={0.25} radius={40}>
+                <button
+                  onClick={() => setIsMobileOpen(!isMobileOpen)}
+                  className="w-10 h-10 rounded-lg border border-border/60 bg-primary/10 flex items-center justify-center text-foreground/80 hover:bg-primary/20 hover:text-primary hover:border-primary/30 transition-colors"
+                  aria-label={isMobileOpen ? "Close menu" : "Open menu"}
+                  aria-expanded={isMobileOpen}
+                >
+                  {isMobileOpen ? <X size={20} /> : <Menu size={20} />}
+                </button>
+              </MagneticButton>
+            </div>
+          </div>
+        </div>
+      </nav>
+
+      {/* Menu overlay */}
+      <div
+        className={`fixed inset-0 z-40 bg-background flex flex-col items-center justify-center gap-6 transition-opacity duration-200 ${
+          isMobileOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+        }`}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Navigation menu"
+      >
+        {navLinks.map((link, i) => (
+          <a
+            key={link.href}
+            href={link.href}
+            onClick={() => setIsMobileOpen(false)}
+            className={`font-display text-2xl sm:text-3xl font-semibold transition-colors duration-200 px-6 py-2 rounded-xl ${
+              activeSection === link.id
+                ? "text-primary bg-primary/10"
+                : "text-foreground hover:text-primary hover:bg-primary/5"
+            }`}
+            style={{ transitionDelay: isMobileOpen ? `${i * 50}ms` : "0ms" }}
+          >
+            {link.label}
+          </a>
+        ))}
+      </div>
+    </>
+  );
+};
+
+export default Navbar;
