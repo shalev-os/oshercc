@@ -129,11 +129,6 @@ const LanguageContext = createContext<LanguageContextType | null>(null);
 
 export const LanguageProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
-    try {
-      localStorage.removeItem("site-lang");
-    } catch {
-      // Storage can be unavailable in privacy-restricted browsers.
-    }
     document.documentElement.dir = "ltr";
     document.documentElement.lang = "en";
     document.title = "Shalev Osher";
