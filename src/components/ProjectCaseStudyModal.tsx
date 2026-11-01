@@ -4,7 +4,6 @@ import { Badge } from "@/components/ui/badge";
 import { motion } from "framer-motion";
 import { Star, GitFork, Eye, ExternalLink, Github, Calendar, Code2, FileText } from "lucide-react";
 import ReactMarkdown from "react-markdown";
-import { useLanguage } from "@/contexts/LanguageContext";
 
 interface RepoSummary {
   name: string;
@@ -35,9 +34,6 @@ interface Props {
 }
 
 const ProjectCaseStudyModal = ({ repo, open, onOpenChange }: Props) => {
-  const { lang } = useLanguage();
-  const isHe = lang === "he";
-
   const [readme, setReadme] = useState<string>("");
   const [languages, setLanguages] = useState<Record<string, number>>({});
   const [details, setDetails] = useState<FullRepoData | null>(null);
@@ -75,7 +71,7 @@ const ProjectCaseStudyModal = ({ repo, open, onOpenChange }: Props) => {
 
   const formatDate = (s?: string) => {
     if (!s) return "";
-    return new Date(s).toLocaleDateString(isHe ? "he-IL" : "en-US", {
+    return new Date(s).toLocaleDateString("en-US", {
       year: "numeric",
       month: "short",
       day: "numeric",
@@ -113,17 +109,17 @@ const ProjectCaseStudyModal = ({ repo, open, onOpenChange }: Props) => {
 
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          <StatCard icon={Star} label={isHe ? "כוכבים" : "Stars"} value={repo.stargazers_count} />
-          <StatCard icon={GitFork} label={isHe ? "פורקים" : "Forks"} value={details?.forks_count ?? 0} />
-          <StatCard icon={Eye} label={isHe ? "צופים" : "Watchers"} value={details?.watchers_count ?? 0} />
-          <StatCard icon={Calendar} label={isHe ? "עודכן" : "Updated"} value={formatDate(details?.updated_at)} small />
+          <StatCard icon={Star} label="Stars" value={repo.stargazers_count} />
+          <StatCard icon={GitFork} label="Forks" value={details?.forks_count ?? 0} />
+          <StatCard icon={Eye} label="Watchers" value={details?.watchers_count ?? 0} />
+          <StatCard icon={Calendar} label="Updated" value={formatDate(details?.updated_at)} small />
         </div>
 
         {/* Language breakdown */}
         {langEntries.length > 0 && (
           <div>
             <h4 className="font-display font-semibold text-sm uppercase tracking-wider mb-3 text-muted-foreground">
-              {isHe ? "שפות" : "Languages"}
+              Languages
             </h4>
             <div className="flex h-2 rounded-full overflow-hidden bg-secondary/40 mb-3">
               {langEntries.map(([lang, bytes]) => (
@@ -156,7 +152,7 @@ const ProjectCaseStudyModal = ({ repo, open, onOpenChange }: Props) => {
         {repo.topics && repo.topics.length > 0 && (
           <div>
             <h4 className="font-display font-semibold text-sm uppercase tracking-wider mb-2 text-muted-foreground">
-              {isHe ? "תגיות" : "Topics"}
+              Topics
             </h4>
             <div className="flex flex-wrap gap-2">
               {repo.topics.map((topic) => (
@@ -195,7 +191,7 @@ const ProjectCaseStudyModal = ({ repo, open, onOpenChange }: Props) => {
             </div>
           ) : (
             <p className="text-sm text-muted-foreground italic">
-              {isHe ? "אין README זמין" : "No README available"}
+              No README available
             </p>
           )}
         </div>
@@ -211,7 +207,7 @@ const ProjectCaseStudyModal = ({ repo, open, onOpenChange }: Props) => {
             className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-primary text-primary-foreground font-medium text-sm hover:shadow-lg hover:shadow-primary/30 transition-shadow"
           >
             <Github className="w-4 h-4" />
-            {isHe ? "צפה ב-GitHub" : "View on GitHub"}
+            View on GitHub
           </motion.a>
           {repo.homepage && (
             <motion.a
@@ -223,7 +219,7 @@ const ProjectCaseStudyModal = ({ repo, open, onOpenChange }: Props) => {
               className="flex items-center gap-2 px-5 py-2.5 rounded-lg border border-primary/40 text-primary font-medium text-sm hover:bg-primary/10 transition-colors"
             >
               <ExternalLink className="w-4 h-4" />
-              {isHe ? "אתר חי" : "Live Site"}
+              Live Site
             </motion.a>
           )}
         </div>

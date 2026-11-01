@@ -18,7 +18,6 @@ import {
   Github,
   Linkedin,
   Download,
-  Languages,
   Home,
   Sparkles,
 } from "lucide-react";
@@ -26,7 +25,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 
 const CommandPalette = () => {
   const [open, setOpen] = useState(false);
-  const { t, lang, setLang } = useLanguage();
+  const { t } = useLanguage();
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -72,23 +71,16 @@ const CommandPalette = () => {
     a.click();
   }, []);
 
-  const switchLang = useCallback(() => {
-    setLang(lang === "en" ? "he" : "en");
-    setOpen(false);
-  }, [lang, setLang]);
-
   return (
     <CommandDialog open={open} onOpenChange={setOpen}>
-      <CommandInput
-        placeholder={lang === "he" ? "חפש פעולה או סקשן..." : "Search actions or sections..."}
-      />
+      <CommandInput placeholder="Search actions or sections..." />
       <CommandList>
-        <CommandEmpty>{lang === "he" ? "לא נמצאו תוצאות." : "No results found."}</CommandEmpty>
+        <CommandEmpty>No results found.</CommandEmpty>
 
-        <CommandGroup heading={lang === "he" ? "ניווט" : "Navigation"}>
+        <CommandGroup heading="Navigation">
           <CommandItem onSelect={() => go("hero")}>
             <Home className="me-2 h-4 w-4" />
-            <span>{lang === "he" ? "דף הבית" : "Home"}</span>
+            <span>Home</span>
           </CommandItem>
           <CommandItem onSelect={() => go("about")}>
             <User className="me-2 h-4 w-4" />
@@ -114,22 +106,17 @@ const CommandPalette = () => {
 
         <CommandSeparator />
 
-        <CommandGroup heading={lang === "he" ? "פעולות" : "Actions"}>
+        <CommandGroup heading="Actions">
           <CommandItem onSelect={downloadCV}>
             <Download className="me-2 h-4 w-4" />
             <span>{t("hero.downloadCV")}</span>
             <CommandShortcut>PDF</CommandShortcut>
           </CommandItem>
-          <CommandItem onSelect={switchLang}>
-            <Languages className="me-2 h-4 w-4" />
-            <span>{lang === "he" ? "Switch to English" : "החלף לעברית"}</span>
-            <CommandShortcut>{lang === "en" ? "HE" : "EN"}</CommandShortcut>
-          </CommandItem>
         </CommandGroup>
 
         <CommandSeparator />
 
-        <CommandGroup heading={lang === "he" ? "קישורים חיצוניים" : "External Links"}>
+        <CommandGroup heading="External Links">
           <CommandItem onSelect={() => external("https://github.com/shalev-os")}>
             <Github className="me-2 h-4 w-4" />
             <span>GitHub</span>
@@ -146,14 +133,14 @@ const CommandPalette = () => {
 
         <CommandSeparator />
 
-        <CommandGroup heading={lang === "he" ? "ביצי פסחא 🥚" : "Easter Eggs 🥚"}>
+        <CommandGroup heading="Easter Eggs 🥚">
           <CommandItem onSelect={() => { setOpen(false); window.dispatchEvent(new CustomEvent("trigger-snake")); }}>
             <Sparkles className="me-2 h-4 w-4" />
-            <span>{lang === "he" ? "שחק Snake 🐍" : "Play Snake 🐍"}</span>
+            <span>Play Snake 🐍</span>
           </CommandItem>
           <CommandItem onSelect={() => { setOpen(false); window.dispatchEvent(new CustomEvent("trigger-matrix")); }}>
             <Sparkles className="me-2 h-4 w-4" />
-            <span>{lang === "he" ? "גשם מטריקס מוזהב" : "Golden Matrix Rain"}</span>
+            <span>Golden Matrix Rain</span>
           </CommandItem>
         </CommandGroup>
       </CommandList>

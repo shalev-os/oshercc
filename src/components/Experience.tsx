@@ -5,8 +5,7 @@ import GradientText from "@/components/GradientText";
 import { useState } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
 
-const experiencesData = {
-  en: [
+const experiencesData = [
     {
       company: "Voicenter", role: "Technical Support Specialist Tier 2", period: "2023 - Present", year: "2023",
       description: [
@@ -50,58 +49,12 @@ const experiencesData = {
         "Removed and installed vehicle assemblies in accordance with established procedures",
       ],
     },
-  ],
-  he: [
-    {
-      company: "Voicenter", role: "מומחה תמיכה טכנית דרג ב׳", period: "2023 - היום", year: "2023",
-      description: [
-        "שיתוף פעולה צמוד עם צוותי פיתוח ו-DevOps באמצעות Jira לטיפול בבעיות ושיפור תהליכי עבודה",
-        "מתן תמיכה מקיפה ללקוחות VIP ולקוחות רגילים במגוון מוצרי החברה",
-        "עבודה עם אינטגרציות API (בשימוש Kibana), רשתות ו-Amazon Web Services (AWS)",
-        "ביצוע בדיקות QA קפדניות על פיצ'רים ושרתים לפי בקשות צוותי פיתוח ו-DevOps",
-        "פיתוח משותף של כלי לפתרון תקלות בשיתוף עם צוות הפיתוח",
-        "אבחון וטיפול פרואקטיבי בתקלות חיות במגוון שרתים באמצעות PRTG",
-      ],
-    },
-    {
-      company: "Voicenter", role: "מומחה תמיכה טכנית - לקוחות אסטרטגיים", period: "2021 - 2023", year: "2021",
-      description: [
-        "מתן תמיכה טכנית למערכות טלפוניה בענן",
-        "כתיבת מדריכים ומצגות, הנחיית חניכים וניהול תרגולים",
-        "ניהול חשבונות הלקוחות הגדולים ביותר באתר",
-        "עבודה עם ASTERISK, SQL, לצד מחלקות IT, הנדסה ופיתוח",
-      ],
-    },
-    {
-      company: "Voicenter", role: "מהנדס תמיכה טכנית דרג א׳", period: "2021", year: "2021",
-      description: [
-        "ביצוע ניתוח של רשתות VoIP ומערכות מחשוב קיימות",
-        "פתרון תקלות ברשתות VoIP באמצעות troubleshooting",
-        "הערכה ושיפור אמצעי אבטחת רשת ופרוטוקולים",
-        "מתן תמיכה טכנית ראשונית ללקוחות דרך שיחות, מיילים או פניות",
-      ],
-    },
-    {
-      company: "ILDC", role: "בודק אבטחת איכות", period: "2018 - 2021", year: "2018",
-      description: [
-        "ביצוע בדיקות QA במעבדת Sagemcom עבור מוצרי חברת Altice (HOT)",
-        "ביצוע בדיקות אבטחת איכות יומיות של ממירים להבטחת עמידה בסטנדרטים",
-      ],
-    },
-    {
-      company: "צה\"ל", role: "שירות צבאי", period: "2015 - 2018", year: "2015",
-      description: [
-        "ביצוע טיפולים ברכבים ושימוש בציוד בדיקה להבטחת תפקוד מיטבי",
-        "הסרה והתקנה של מכלולי רכב בהתאם לנהלים מבוססים",
-      ],
-    },
-  ],
-};
+];
 
 const Experience = () => {
   const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
-  const { t, lang } = useLanguage();
-  const experiences = experiencesData[lang];
+  const { t } = useLanguage();
+  const experiences = experiencesData;
 
   const titleTypewriter = useTypewriter({ text: t("exp.title"), speed: 80, loop: true, pauseDuration: 5000 });
   const subtitleTypewriter = useTypewriter({ text: t("exp.subtitle"), speed: 25, delay: 1200, loop: true, pauseDuration: 5000 });
@@ -126,7 +79,7 @@ const Experience = () => {
 
         <div className="max-w-4xl mx-auto">
           <div className="relative" role="list" aria-label="Work experience timeline">
-            <div className="absolute start-[28px] md:start-1/2 md:[transform:translateX(-50%)] rtl:md:[transform:translateX(50%)] top-0 bottom-0 w-[2px] timeline-line" aria-hidden="true" />
+            <div className="absolute start-[28px] md:start-1/2 md:[transform:translateX(-50%)] top-0 bottom-0 w-[2px] timeline-line" aria-hidden="true" />
 
             <div className="space-y-0">
               {experiences.map((exp, index) => {
@@ -185,7 +138,7 @@ const Experience = () => {
                             <ul className="space-y-2 mt-4 pt-4 border-t border-border/50">
                               {exp.description.map((item, i) => (
                                 <li key={i} className="text-muted-foreground text-sm flex gap-2">
-                                  <span className="text-primary flex-shrink-0" aria-hidden="true">{lang === 'he' ? '◂' : '▸'}</span>
+                                  <span className="text-primary flex-shrink-0" aria-hidden="true">▸</span>
                                   {item}
                                 </li>
                               ))}
@@ -194,7 +147,7 @@ const Experience = () => {
                         </div>
                       </div>
 
-                      <div className="hidden md:flex absolute start-1/2 [transform:translateX(-50%)] rtl:[transform:translateX(50%)] z-10" style={{ visibility: showYear ? 'visible' : 'hidden' }}>
+                      <div className="hidden md:flex absolute start-1/2 [transform:translateX(-50%)] z-10" style={{ visibility: showYear ? 'visible' : 'hidden' }}>
                         <button
                           onClick={() => setExpandedIndex(isExpanded ? -1 : index)}
                           className={`px-5 h-11 rounded-md inline-flex items-center justify-center text-sm font-semibold font-display border-2 border-primary transition-colors duration-200 ${

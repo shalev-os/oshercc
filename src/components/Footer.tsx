@@ -2,7 +2,7 @@ import { Github, Linkedin, Facebook } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 const Footer = () => {
-  const { t, lang } = useLanguage();
+  const { t } = useLanguage();
 
   const socialLinks = [
     { icon: Linkedin, href: "https://linkedin.com/in/shalev-osher/", label: "LinkedIn" },

@@ -3,7 +3,7 @@ import { dirname, extname, join, resolve } from 'node:path';
 
 const root = process.cwd();
 const failures = [];
-const sourceExtensions = new Set(['.ts', '.tsx', '.js', '.jsx', '.css', '.html', '.json', '.xml', '.txt', '.svg', '.webmanifest']);
+const sourceExtensions = new Set(['.ts', '.tsx', '.js', '.jsx', '.css', '.html', '.json', '.md', '.xml', '.txt', '.svg', '.webmanifest']);
 function filesIn(directory) {
   if (!existsSync(directory)) return [];
   return readdirSync(directory, { withFileTypes: true }).flatMap(entry => {
@@ -23,7 +23,14 @@ for (const path of ['supabase', 'src/integrations/supabase', 'src/lib/mcp']) {
 }
 if (existsSync(join(root, '.env'))) failures.push('A static site must not require a tracked .env file.');
 
-const files = [...filesIn(join(root, 'src')), ...filesIn(join(root, 'public')), join(root, 'index.html'), join(root, 'vite.config.ts')];
+const files = [
+  ...filesIn(join(root, 'src')),
+  ...filesIn(join(root, 'public')),
+  ...filesIn(join(root, 'docs')),
+  join(root, 'README.md'),
+  join(root, 'index.html'),
+  join(root, 'vite.config.ts'),
+];
 for (const path of files) {
   if (!sourceExtensions.has(extname(path)) || !existsSync(path)) continue;
   const text = readFileSync(path, 'utf8');
@@ -31,6 +38,8 @@ for (const path of files) {
     failures.push(`Provider reference remains: ${path.slice(root.length + 1)}`);
   }
   if (/['"]\/(?:admin|auth)(?:[/'"])/i.test(text)) failures.push(`Private route remains: ${path.slice(root.length + 1)}`);
+  if (/[\u0590-\u05ff]/u.test(text)) failures.push(`Hebrew text remains: ${path.slice(root.length + 1)}`);
+  if (/\brtl:|dir\s*=\s*["'{]rtl/i.test(text)) failures.push(`RTL support remains: ${path.slice(root.length + 1)}`);
   if (!/\.[jt]sx?$/.test(path)) continue;
   for (const match of text.matchAll(/(?:from\s*|import\s*\(\s*|import\s*)['"]([^'"]+)['"]/g)) {
     const specifier = match[1].split('?')[0];
@@ -47,5 +56,5 @@ if (failures.length) {
   console.error(failures.join('\n'));
   process.exitCode = 1;
 } else {
-  console.log('Static site checks passed: no provider SDKs, private routes, or unresolved local imports.');
+  console.log('Static site checks passed: English-only content, no provider SDKs, private routes, or unresolved local imports.');
 }

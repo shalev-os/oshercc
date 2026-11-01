@@ -9,7 +9,7 @@ import Particles from "./Particles";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 const Hero = () => {
-  const { t, lang } = useLanguage();
+  const { t } = useLanguage();
   const [cvOpen, setCvOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
 
@@ -32,8 +32,8 @@ const Hero = () => {
 
   const roles = [t("hero.role1"), t("hero.role2"), t("hero.role3"), t("hero.role4")];
 
-  const nameText = lang === "he" ? "שליו אושר" : "Shalev Osher";
-  const helloText = lang === "he" ? "שלום, אני" : "Hello, I'm";
+  const nameText = "Shalev Osher";
+  const helloText = "Hello, I'm";
 
   const helloTypewriter = useTypewriter({
     text: helloText,
