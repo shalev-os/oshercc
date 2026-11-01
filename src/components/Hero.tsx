@@ -7,7 +7,6 @@ import { useTypewriter } from "@/hooks/useTypewriter";
 import MagneticButton from "./MagneticButton";
 import Particles from "./Particles";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { trackCvDownload } from "@/lib/trackCvDownload";
 
 const Hero = () => {
   const { t, lang } = useLanguage();
@@ -25,7 +24,6 @@ const Hero = () => {
   }, []);
 
   const handleDownload = () => {
-    trackCvDownload(lang);
     const a = document.createElement("a");
     a.href = "/cv/shalev-osher-cv.pdf";
     a.download = "shalev-osher-cv.pdf";

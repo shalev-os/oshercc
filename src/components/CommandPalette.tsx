@@ -23,7 +23,6 @@ import {
   Sparkles,
 } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { trackCvDownload } from "@/lib/trackCvDownload";
 
 const CommandPalette = () => {
   const [open, setOpen] = useState(false);
@@ -67,12 +66,11 @@ const CommandPalette = () => {
 
   const downloadCV = useCallback(() => {
     setOpen(false);
-    trackCvDownload(lang);
     const a = document.createElement("a");
     a.href = "/cv/shalev-osher-cv.pdf";
     a.download = "shalev-osher-cv.pdf";
     a.click();
-  }, [lang]);
+  }, []);
 
   const switchLang = useCallback(() => {
     setLang(lang === "en" ? "he" : "en");
@@ -132,7 +130,7 @@ const CommandPalette = () => {
         <CommandSeparator />
 
         <CommandGroup heading={lang === "he" ? "קישורים חיצוניים" : "External Links"}>
-          <CommandItem onSelect={() => external("https://github.com/Shalev-osher")}>
+          <CommandItem onSelect={() => external("https://github.com/shalev-os")}>
             <Github className="me-2 h-4 w-4" />
             <span>GitHub</span>
           </CommandItem>

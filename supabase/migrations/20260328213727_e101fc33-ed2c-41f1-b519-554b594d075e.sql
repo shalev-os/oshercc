@@ -1,1 +1,0 @@
-CREATE UNIQUE INDEX IF NOT EXISTS idx_telegram_messages_update_id ON telegram_messages (update_id) WHERE update_id IS NOT NULL;

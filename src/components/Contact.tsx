@@ -1,16 +1,13 @@
-import { Mail, Phone, MapPin, Linkedin, Send, CheckCircle2 } from "lucide-react";
+import { Mail, Phone, MapPin, Linkedin, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useState } from "react";
-import { useToast } from "@/hooks/use-toast";
 import { useTypewriter } from "@/hooks/useTypewriter";
 import AnimatedSection from "@/components/AnimatedSection";
 import GradientText from "@/components/GradientText";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { supabase } from "@/integrations/supabase/client";
-import { celebrate, sounds } from "@/lib/celebrate";
 
 interface FieldErrors {
   name?: string;
@@ -19,12 +16,10 @@ interface FieldErrors {
 }
 
 const Contact = () => {
-  const { toast } = useToast();
   const [formData, setFormData] = useState({ name: "", email: "", message: "" });
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [touched, setTouched] = useState<Record<string, boolean>>({});
-  const [submitted, setSubmitted] = useState(false);
+  const [draftPrepared, setDraftPrepared] = useState(false);
   const { t } = useLanguage();
 
   const titleTypewriter = useTypewriter({ text: t("contact.title"), speed: 80, loop: true, pauseDuration: 5000 });
@@ -55,6 +50,7 @@ const Contact = () => {
   };
 
   const handleChange = (field: string, value: string) => {
+    setDraftPrepared(false);
     setFormData(prev => ({ ...prev, [field]: value }));
     if (touched[field]) {
       const error = validateField(field, value);
@@ -62,7 +58,7 @@ const Contact = () => {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const errors: FieldErrors = {
       name: validateField("name", formData.name),
@@ -74,28 +70,10 @@ const Contact = () => {
 
     if (Object.values(errors).some(Boolean)) return;
 
-    setIsSubmitting(true);
-    try {
-      const { error } = await supabase.functions.invoke("send-contact-email", {
-        body: { name: formData.name.trim(), email: formData.email.trim(), message: formData.message.trim() },
-      });
-      if (error) throw error;
-
-      setSubmitted(true);
-      celebrate();
-      sounds.success();
-      toast({ title: t("contact.successTitle") || "Message sent!", description: t("contact.successDesc") || "Your message has been sent successfully." });
-      setFormData({ name: "", email: "", message: "" });
-      setTouched({});
-      setFieldErrors({});
-      setTimeout(() => setSubmitted(false), 4000);
-    } catch (err) {
-      console.error("Contact form error:", err);
-      sounds.error();
-      toast({ title: t("contact.errorTitle") || "Error", description: t("contact.errorDesc") || "Failed to send message. Please try again.", variant: "destructive" });
-    } finally {
-      setIsSubmitting(false);
-    }
+    const subject = encodeURIComponent(`Website contact: ${formData.name.trim()}`);
+    const body = encodeURIComponent(`${formData.message.trim()}\n\nName: ${formData.name.trim()}\nReply email: ${formData.email.trim()}`);
+    setDraftPrepared(true);
+    window.location.href = `mailto:shalev@osher.cc?subject=${subject}&body=${body}`;
   };
 
   const contactInfo = [
@@ -165,27 +143,8 @@ const Contact = () => {
 
           <AnimatedSection delay={0.2} animation="slideRight">
             <form onSubmit={handleSubmit} className="space-y-5 card-premium p-8 relative" aria-label="Contact form">
-              {/* Success overlay */}
-              <AnimatePresence>
-                {submitted && (
-                  <motion.div
-                    className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-card/95 backdrop-blur-sm rounded-xl"
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.95 }}
-                  >
-                    <motion.div
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1 }}
-                      transition={{ type: "spring", delay: 0.1 }}
-                    >
-                      <CheckCircle2 className="w-16 h-16 text-green-500 mb-4" />
-                    </motion.div>
-                    <p className="font-display text-xl font-semibold">{t("contact.successTitle") || "Message Sent!"}</p>
-                    <p className="text-muted-foreground text-sm mt-1">{t("contact.successDesc") || "Thank you for reaching out."}</p>
-                  </motion.div>
-                )}
-              </AnimatePresence>
+              <p className="text-muted-foreground text-sm" id="contact-draft-help">{t("contact.draftHelp")}</p>
+              {draftPrepared && <p role="status" className="text-sm text-primary">{t("contact.draftPrepared")}</p>}
 
               <div>
                 <label htmlFor="contact-name" className="sr-only">{t("contact.fullName")}</label>
@@ -243,13 +202,9 @@ const Contact = () => {
                   <p className="text-muted-foreground text-xs ms-auto">{formData.message.length}/2000</p>
                 </div>
               </div>
-              <Button variant="hero" size="xl" className="w-full gap-2" disabled={isSubmitting}>
-                {isSubmitting ? (
-                  <motion.div className="w-5 h-5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full" animate={{ rotate: 360 }} transition={{ duration: 0.8, repeat: Infinity, ease: "linear" }} />
-                ) : (
-                  <Send className="w-5 h-5" aria-hidden="true" />
-                )}
-                {isSubmitting ? t("contact.sending") : t("contact.send")}
+              <Button type="submit" variant="hero" size="xl" className="w-full gap-2" aria-describedby="contact-draft-help">
+                <Send className="w-5 h-5" aria-hidden="true" />
+                {t("contact.openDraft")}
               </Button>
             </form>
           </AnimatedSection>

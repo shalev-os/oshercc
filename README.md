@@ -1,65 +1,37 @@
 # osher.cc
 
-## Overview
+Public portfolio for Shalev Osher, built with React, TypeScript, Vite, Tailwind CSS, shadcn/ui and Framer Motion.
 
-A high-end interactive portfolio engineered as a frontend system —> This is not a portfolio. This is a system.
+## Features
 
-This application showcases technical capability through execution, not just content.
+- Hebrew and English content with right-to-left support.
+- Certifications, experience, CV preview and direct PDF download.
+- Public project listings from [shalev-os on GitHub](https://github.com/shalev-os).
+- Email and telephone contact links. The contact form prepares a draft in the visitor's email app; the visitor reviews and sends it there.
+- Responsive layouts and reduced-motion support.
 
----
+## Development
 
-## Objective
+Use Node.js 24 and npm:
 
-- Demonstrate real engineering skills
-- Deliver interactive experience
-- Combine performance with rich UI
+```sh
+npm ci
+npm run dev
+```
 
----
+```sh
+npm run build
+npm run preview
+```
 
-## Core Capabilities
+The production build is generated in `dist/`. The site is static and requires no application server, database, account system, API credentials or environment variables. Contact messages and CV downloads are not stored or tracked by the application.
 
-### Architecture
+The public GitHub projects section requests GitHub's public API directly and hides itself if the API is unavailable. Fonts load from Google Fonts; all certificate and CV files are served from the site's own `public/` directory.
 
-- Modular component system
-- Code-splitting and lazy loading
-- Clean separation of concerns
+## Deployment
 
----
+Repository: [shalev-os/oshercc](https://github.com/shalev-os/oshercc).
 
-### UI/UX
+Serve `dist/` as static files with a history fallback to `index.html`. The checked-in `public/web.config` supplies IIS rewrite rules for standalone hosting. The signed deployment pipeline preserves the production server's existing `web.config` rather than replacing it with build output.
 
-- Interactive hero
-- Animated transitions
-- Scroll storytelling
-- Command palette
-
----
-
-### Performance
-
-- Lazy loading
-- Reduced-motion support
-- Web Vitals tracking
-
----
-
-### Features
-
-- GitHub projects integration
-- Multi-language support
-- Easter eggs (Konami code, Snake)
-- Analytics via Supabase
-
----
-
-## Tech Stack
-
-React, TypeScript, Vite, Tailwind, shadcn/ui, Framer Motion, React Query, Supabase
-
----
-
-## Summary
-
-This is not a portfolio.
-
-It is a live demonstration of engineering capability.
+Use the npm lockfile as the sole dependency lockfile. No database migration or service-provider setup is needed.

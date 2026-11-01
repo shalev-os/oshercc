@@ -19,7 +19,7 @@ interface GitHubRepo {
   owner: { login: string };
 }
 
-const GITHUB_USERNAME = "shalev-osher";
+const GITHUB_USERNAME = "shalev-os";
 
 const languageColors: Record<string, string> = {
   TypeScript: "hsl(210 80% 60%)", JavaScript: "hsl(50 90% 55%)", Python: "hsl(210 60% 50%)",
