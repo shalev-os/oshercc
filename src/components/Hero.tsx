@@ -68,18 +68,19 @@ const Hero = () => {
           
           <h1 className="font-display text-5xl md:text-7xl lg:text-8xl font-bold mb-8 leading-tight" id="hero-title">
             <span className="block text-foreground/80 text-3xl md:text-4xl lg:text-5xl font-light mb-2">
-              {helloTypewriter.displayedText}
+              {helloText}
               <span className={`inline-block w-[2px] h-[0.8em] bg-foreground/60 ms-1 align-middle transition-opacity duration-100 ${helloTypewriter.showCursor && !nameTypewriter.displayedText ? 'opacity-100' : 'opacity-0'}`} />
             </span>
             <span className="block text-gradient">
-              {nameTypewriter.displayedText}
+              {nameText}
               <span className={`inline-block w-[3px] h-[0.8em] bg-primary ms-1 align-middle transition-opacity duration-100 ${nameTypewriter.showCursor ? 'opacity-100' : 'opacity-0'}`} />
             </span>
           </h1>
           
-          <div className="mb-12" />
+          <p className="text-xl md:text-2xl text-muted-foreground mb-10">Technical Support Specialist · Systems &amp; Cloud</p>
 
-          <div className="flex items-center justify-center">
+          <div className="flex flex-col sm:flex-row gap-4 items-center justify-center">
+            <a href="#contact" className="rounded-lg bg-primary text-primary-foreground px-8 py-4 font-semibold hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4">Get in touch</a>
             <MagneticButton>
               <Button
                 variant="heroOutline"

@@ -145,7 +145,7 @@ const RepoCard = ({
           {repo.name}
         </h3>
         <p className="text-muted-foreground text-sm leading-relaxed flex-grow mb-4">
-          {repo.description || t("github.noDesc")}
+          {repo.name === 'oshercc' ? 'A professional portfolio delivered through a protected CI/CD pipeline to IIS, with signed releases and automatic rollback.' : repo.name === 'mazonhaosher' ? 'A responsive boutique cookie website with multilingual content, secure IIS deployment, and direct customer contact.' : repo.description || t("github.noDesc")}
         </p>
         <div className="flex items-center justify-between mt-auto">
           {repo.language && (
