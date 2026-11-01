@@ -151,28 +151,33 @@ html {
 
   html {
     scroll-behavior: smooth;
-    font-size: 87.5%;
+    font-size: 100%;
+    scroll-padding-top: 6rem;
   }
 
   /* Densify on large displays — smaller base size, more items per row */
   @media (min-width: 1600px) {
-    html { font-size: 82%; }
+    html { font-size: 100%; }
   }
   @media (min-width: 1920px) {
-    html { font-size: 78%; }
+    html { font-size: 100%; }
   }
   @media (min-width: 2400px) {
-    html { font-size: 72%; }
+    html { font-size: 100%; }
   }
 
   body {
     @apply bg-background text-foreground;
     font-family: var(--font-body);
     overflow-x: hidden;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
   }
 
   h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-display);
+    text-wrap: balance;
+    letter-spacing: -0.025em;
   }
 }
 
@@ -211,12 +216,13 @@ html {
     @apply bg-card rounded-xl border border-border/50 backdrop-blur-sm;
     box-shadow: var(--shadow-card);
     transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 1.25rem;
   }
 
   .card-premium:hover {
     box-shadow: var(--shadow-card-hover);
     border-color: hsl(var(--primary) / 0.3);
-    transform: translateY(-4px);
+    transform: translateY(-2px);
   }
 
   .section-glow {
