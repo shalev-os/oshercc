@@ -11,7 +11,7 @@ const Footer = () => {
   ];
 
   return (
-    <footer className="fixed bottom-0 inset-x-0 z-40 py-4 pointer-events-none" role="contentinfo">
+    <footer className="relative border-t border-border/50 bg-background py-8" role="contentinfo">
       <div className="container mx-auto px-6">
         <div className="flex flex-col items-center gap-2 text-center pointer-events-auto">
           <nav className="flex items-center gap-3" aria-label="Social media links">
