@@ -40,6 +40,7 @@ for (const path of files) {
   if (/['"]\/(?:admin|auth)(?:[/'"])/i.test(text)) failures.push(`Private route remains: ${path.slice(root.length + 1)}`);
   if (/[\u0590-\u05ff]/u.test(text)) failures.push(`Hebrew text remains: ${path.slice(root.length + 1)}`);
   if (/\brtl:|dir\s*=\s*["'{]rtl/i.test(text)) failures.push(`RTL support remains: ${path.slice(root.length + 1)}`);
+  if (/site-lang|lang\s*===?\s*["']he["']/i.test(text)) failures.push(`Legacy language selection remains: ${path.slice(root.length + 1)}`);
   if (!/\.[jt]sx?$/.test(path)) continue;
   for (const match of text.matchAll(/(?:from\s*|import\s*\(\s*|import\s*)['"]([^'"]+)['"]/g)) {
     const specifier = match[1].split('?')[0];
