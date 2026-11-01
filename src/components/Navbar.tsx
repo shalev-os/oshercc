@@ -6,7 +6,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 
 const Navbar = () => {
   const [isMobileOpen, setIsMobileOpen] = useState(false);
-  const { lang, t } = useLanguage();
+  const { t } = useLanguage();
 
   const sectionIds = useMemo(() => ["about", "skills", "experience", "education", "contact"], []);
   const activeSection = useActiveSection(sectionIds);
@@ -34,7 +34,7 @@ const Navbar = () => {
         <div className="container mx-auto px-4 sm:px-6 py-3 sm:py-4">
         <div className="flex items-center justify-between relative">
             <a href="#" className="font-display text-xl sm:text-2xl font-bold text-gradient" aria-label="Shalev Osher - Home">
-              {lang === "he" ? "שליו אושר" : "Shalev Osher"}
+              Shalev Osher
             </a>
 
             {/* Desktop links - centered */}

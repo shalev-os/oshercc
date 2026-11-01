@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect, useMemo, type TransitionEvent } from "react";
-import { GraduationCap, Award, Calendar, ExternalLink, Clock, Languages, X, Download, Eye } from "lucide-react";
+import { GraduationCap, Award, Calendar, ExternalLink, Clock, X, Download, Eye } from "lucide-react";
 import AnimatedSection from "@/components/AnimatedSection";
 import GradientText from "@/components/GradientText";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -8,7 +8,7 @@ import { useTypewriter } from "@/hooks/useTypewriter";
 const education = [
   {
     institution: "Kernelios",
-    degree: "Cyber Defense Practitioner (מיישם הגנת סייבר)",
+    degree: "Cyber Defense Practitioner",
     period: "July 2021 - April 2022",
     hours: "306 Hours",
   },
@@ -16,9 +16,9 @@ const education = [
 
 const certificates = [
   { name: "Certified Hands-On Cyber Security Specialist", issuer: "Kernelios", code: "CHCSS 310", year: "April 2022", verifyUrl: null, image: "/certificates/optimized/kernelios-chcss.webp", mobileImage: "/certificates/mobile/kernelios-chcss.webp", pdf: "/certificates/kernelios-chcss.pdf", accent: "from-yellow-500/20 to-amber-600/20" },
-  { name: "תעודת גמר - מיישם הגנת סייבר", issuer: "משרד הכלכלה והתעשייה", code: "תעודה מס׳ 1442431", year: "April 2022", verifyUrl: null, image: "/certificates/optimized/kernelios-gov.webp", mobileImage: "/certificates/mobile/kernelios-gov.webp", pdf: "/certificates/kernelios-gov.pdf", accent: "from-blue-500/20 to-cyan-500/20" },
-  { name: "גיליון ציונים - מיישם הגנת סייבר", issuer: "משרד הכלכלה והתעשייה", code: "קרנליוס בע״מ", year: "June 2022", verifyUrl: null, image: "/certificates/optimized/kernelios-grades.webp", mobileImage: "/certificates/mobile/kernelios-grades.webp", pdf: "/certificates/kernelios-grades.pdf", accent: "from-blue-500/20 to-indigo-500/20" },
-  { name: "MCSA: Windows Server 2016", issuer: "Microsoft", code: "Cert #1F7071-E04B87", year: "November 2020", verifyUrl: "https://learn.microsoft.com/he-il/users/shalevosher-6659/transcript/714gcwjmylnq9k7", image: "/certificates/optimized/mcsa.webp", mobileImage: "/certificates/mobile/mcsa.webp", pdf: "/certificates/mcsa.pdf", accent: "from-sky-500/20 to-blue-600/20" },
+  { name: "Cyber Defense Practitioner Completion Certificate", issuer: "Ministry of Economy and Industry", code: "Certificate #1442431", year: "April 2022", verifyUrl: null, image: "/certificates/optimized/kernelios-gov.webp", mobileImage: "/certificates/mobile/kernelios-gov.webp", pdf: "/certificates/kernelios-gov.pdf", accent: "from-blue-500/20 to-cyan-500/20" },
+  { name: "Cyber Defense Practitioner Grade Transcript", issuer: "Ministry of Economy and Industry", code: "Kernelios Ltd.", year: "June 2022", verifyUrl: null, image: "/certificates/optimized/kernelios-grades.webp", mobileImage: "/certificates/mobile/kernelios-grades.webp", pdf: "/certificates/kernelios-grades.pdf", accent: "from-blue-500/20 to-indigo-500/20" },
+  { name: "MCSA: Windows Server 2016", issuer: "Microsoft", code: "Cert #1F7071-E04B87", year: "November 2020", verifyUrl: "https://learn.microsoft.com/en-us/users/shalevosher-6659/transcript/714gcwjmylnq9k7", image: "/certificates/optimized/mcsa.webp", mobileImage: "/certificates/mobile/mcsa.webp", pdf: "/certificates/mcsa.pdf", accent: "from-sky-500/20 to-blue-600/20" },
   { name: "Linux Essentials", issuer: "Linux Professional Institute (LPI)", code: "LPI000494064", year: "July 2021", verifyUrl: "https://cs.lpi.org/caf/Xamman/certification/verify/LPI000494064/rafgerhedt", image: "/certificates/optimized/linux-essentials.webp", mobileImage: "/certificates/mobile/linux-essentials.webp", pdf: "/certificates/linux-essentials.pdf", accent: "from-emerald-500/20 to-teal-500/20" },
 ];
 
@@ -31,8 +31,7 @@ const Education = () => {
   const [isPaused, setIsPaused] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
-  const { t, lang } = useLanguage();
-  const isRtl = lang === "he";
+  const { t } = useLanguage();
 
   const carouselItems = useMemo(
     () => [
@@ -157,7 +156,7 @@ const Education = () => {
                       key={`${cert.name}-${index}`}
                       className="flex-[0_0_86%] min-w-0 px-2 h-auto md:flex-[0_0_33.333%] md:px-3"
                     >
-                      <div className="relative group h-full md:transition-transform md:duration-300 md:hover:-translate-y-2" dir={isRtl ? "rtl" : "ltr"}>
+                      <div className="relative group h-full md:transition-transform md:duration-300 md:hover:-translate-y-2">
                         <div className={`hidden md:block absolute -inset-2 rounded-3xl bg-gradient-to-br ${cert.accent} opacity-0 group-hover:opacity-100 transition-opacity duration-700 blur-xl`} />
                         <div className="relative h-full flex flex-col rounded-2xl overflow-hidden bg-card/75 border border-border/40 group-hover:border-primary/20 transition-colors duration-500">
                           <button type="button" className="relative overflow-hidden text-start" onClick={() => setSelectedImage(isMobile ? cert.mobileImage : cert.image)} aria-label={`${t("edu.viewCert")} - ${cert.name}`}>
@@ -201,30 +200,6 @@ const Education = () => {
           </div>
         </AnimatedSection>
 
-        <AnimatedSection delay={0.5} animation="rotate">
-          <div className="max-w-md mx-auto mt-20">
-            <div className="relative group">
-              <div className="absolute -inset-px rounded-2xl bg-gradient-to-r from-primary/20 via-transparent to-primary/20 opacity-0 group-hover:opacity-100 transition-opacity duration-700 blur-sm" />
-              <div className="relative p-8 rounded-2xl bg-card/70 border border-border/50">
-                <h3 className="font-display text-lg font-semibold mb-6 text-center flex items-center justify-center gap-2 text-muted-foreground">
-                  <Languages className="w-5 h-5 text-primary" />
-                  {t("edu.languages")}
-                </h3>
-                <div className="flex justify-center gap-12">
-                  <div className="text-center">
-                    <span className="font-display text-2xl font-bold text-gradient">English</span>
-                    <p className="text-muted-foreground text-xs mt-1 uppercase tracking-wider">{t("edu.fluent")}</p>
-                  </div>
-                  <div className="w-px bg-border/50" />
-                  <div className="text-center">
-                    <span className="font-display text-2xl font-bold text-gradient">Hebrew</span>
-                    <p className="text-muted-foreground text-xs mt-1 uppercase tracking-wider">{t("edu.native")}</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </AnimatedSection>
       </div>
 
       {selectedImage && (

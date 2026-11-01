@@ -1,199 +1,157 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { createContext, useContext, useEffect, type ReactNode } from "react";
 
-export type Lang = "en" | "he";
+export type Lang = "en";
 
 interface LanguageContextType {
   lang: Lang;
-  setLang: (lang: Lang) => void;
   t: (key: string) => string;
-  dir: "ltr" | "rtl";
+  dir: "ltr";
 }
 
-const translations: Record<string, Record<Lang, string>> = {
-  // Navbar
-  "nav.about": { en: "About", he: "אודות" },
-  "nav.skills": { en: "Skills", he: "כישורים" },
-  "nav.experience": { en: "Experience", he: "ניסיון" },
-  "nav.certifications": { en: "Certifications", he: "הסמכות" },
-  "nav.contact": { en: "Contact", he: "צור קשר" },
-
-  // Hero
-  "hero.portfolio": { en: "Portfolio", he: "תיק עבודות" },
-  "hero.hello": { en: "Hello, I'm", he: "שלום, אני" },
-  "hero.viewExperience": { en: "View Experience", he: "צפה בניסיון" },
-  "hero.getInTouch": { en: "Get in Touch", he: "צור קשר" },
-  "hero.downloadCV": { en: "Download CV", he: "הורד קו\"ח" },
-  "hero.viewCV": { en: "View CV", he: "צפה בקו\"ח" },
-  "hero.downloadPdf": { en: "Download PDF", he: "הורד PDF" },
-  "hero.cvPreview": { en: "CV Preview", he: "תצוגה מקדימה של קו\"ח" },
-  "hero.role1": { en: "Technical Support Specialist", he: "מומחה תמיכה טכנית" },
-  "hero.role2": { en: "System Administrator", he: "מנהל מערכות" },
-  "hero.role3": { en: "DevOps Enthusiast", he: "חובב DevOps" },
-  "hero.role4": { en: "Full Stack Developer", he: "מפתח Full Stack" },
-
-  // About
-  "about.title": { en: "About Me", he: "אודותיי" },
-  "about.p1": {
-    en: "Experienced Technical Support Specialist with a proven track record of ensuring smooth operation of servers and microservices. Skilled in troubleshooting and resolving technical issues promptly, with extensive networking and system administration expertise.",
-    he: "מומחה תמיכה טכנית מנוסה עם רקורד מוכח בהבטחת פעולה חלקה של שרתים ומיקרו-שירותים. בעל מיומנויות בפתרון תקלות טכניות במהירות, עם מומחיות נרחבת ברשתות ובניהול מערכות.",
-  },
-  "about.p2": {
-    en: "Adept at utilizing SQL databases, Kibana, and AWS for log analysis and service recording. Successfully manages a technical department, fostering efficient workflow and effective issue resolution. Demonstrates proficiency in working with internal ticketing systems and adhering to SLA workflows.",
-    he: "מיומן בשימוש במסדי נתונים SQL, Kibana ו-AWS לניתוח לוגים ותיעוד שירות. מנהל בהצלחה מחלקה טכנית, מקדם זרימת עבודה יעילה ופתרון בעיות אפקטיבי. מפגין מיומנות בעבודה עם מערכות פנימיות ועמידה בתהליכי SLA.",
-  },
-  "about.yearsExp": { en: "Years Experience", he: "שנות ניסיון" },
-  "about.companies": { en: "Companies", he: "חברות" },
-  "about.certHours": { en: "Cert. Hours", he: "שעות הסמכה" },
-
-  // Skills
-  "skills.title": { en: "My Skills", he: "הכישורים שלי" },
-  "skills.subtitle": {
-    en: "Technologies and tools I use to solve complex technical challenges",
-    he: "טכנולוגיות וכלים שאני משתמש בהם כדי לפתור אתגרים טכניים מורכבים",
-  },
-  "skills.serverMgmt": { en: "Server Management", he: "ניהול שרתים" },
-  "skills.serverDesc": { en: "Troubleshooting, server monitoring, query execution", he: "פתרון תקלות, ניטור שרתים, הרצת שאילתות" },
-  "skills.networking": { en: "Networking & VoIP", he: "רשתות ו-VoIP" },
-  "skills.networkDesc": { en: "ASTERISK, VoIP, network security, protocols", he: "ASTERISK, VoIP, אבטחת רשת, פרוטוקולים" },
-  "skills.databases": { en: "Databases", he: "מסדי נתונים" },
-  "skills.dbDesc": { en: "SQL, MongoDB, log analysis with Kibana", he: "SQL, MongoDB, ניתוח לוגים עם Kibana" },
-  "skills.cloud": { en: "Cloud Services", he: "שירותי ענן" },
-  "skills.cloudDesc": { en: "AWS, API Integrations, DevOps", he: "AWS, אינטגרציות API, DevOps" },
-  "skills.cyber": { en: "Cyber Security", he: "אבטחת סייבר" },
-  "skills.cyberDesc": { en: "MCSA, Linux, Cyber Security Specialist", he: "MCSA, Linux, מומחה אבטחת סייבר" },
-  "skills.support": { en: "Technical Support", he: "תמיכה טכנית" },
-  "skills.supportDesc": { en: "Call center management, Jira, SLA, VIP clients", he: "ניהול מוקד שירות, Jira, SLA, לקוחות VIP" },
-  "skills.heatmapTitle": { en: "Skills Proficiency Map", he: "מפת מיומנויות" },
-  "skills.beginner": { en: "Beginner", he: "מתחיל" },
-  "skills.expert": { en: "Expert", he: "מומחה" },
-
-  // GitHub
-  "github.title": { en: "GitHub Projects", he: "פרויקטים ב-GitHub" },
-  "github.subtitle": { en: "Open source projects and repositories from my GitHub", he: "פרויקטים וריפוזיטוריות קוד פתוח מה-GitHub שלי" },
-  "github.noDesc": { en: "No description available", he: "אין תיאור זמין" },
-
-  // Experience
-  "exp.title": { en: "Work Experience", he: "ניסיון תעסוקתי" },
-  "exp.subtitle": { en: "My professional journey in technology and technical support", he: "המסע המקצועי שלי בטכנולוגיה ותמיכה טכנית" },
-
-  // Education
-  "edu.title": { en: "Education & Certifications", he: "השכלה והסמכות" },
-  "edu.subtitle": { en: "Professional training and certifications in cyber security and technology", he: "הכשרות מקצועיות והסמכות באבטחת סייבר וטכנולוגיה" },
-  "edu.certifications": { en: "Certifications", he: "הסמכות" },
-  "edu.languages": { en: "Languages", he: "שפות" },
-  "edu.fluent": { en: "Fluent", he: "שוטף" },
-  "edu.native": { en: "Native", he: "שפת אם" },
-  "edu.viewCert": { en: "View Certificate", he: "צפה בתעודה" },
-
-  // Contact
-  "contact.title": { en: "Let's Connect", he: "בואו נתחבר" },
-  "contact.subtitle": {
-    en: "Looking for a Technical Support Specialist? I'd love to hear from you",
-    he: "מחפשים מומחה תמיכה טכנית? אשמח לשמוע מכם",
-  },
-  "contact.email": { en: "Email", he: "אימייל" },
-  "contact.phone": { en: "Phone", he: "טלפון" },
-  "contact.location": { en: "Location", he: "מיקום" },
-  "contact.locationVal": { en: "Ashkelon, Israel", he: "אשקלון, ישראל" },
-  "contact.fullName": { en: "Full Name", he: "שם מלא" },
-  "contact.emailPlaceholder": { en: "Email", he: "אימייל" },
-  "contact.messagePlaceholder": { en: "How can I help you?", he: "איך אוכל לעזור?" },
-  "contact.errorName": { en: "Enter your name", he: "יש למלא שם" },
-  "contact.errorEmail": { en: "Enter your email address", he: "יש למלא כתובת אימייל" },
-  "contact.errorEmailFormat": { en: "Enter a valid email address", he: "יש למלא כתובת אימייל תקינה" },
-  "contact.errorMessage": { en: "Enter your message", he: "יש למלא הודעה" },
-  "contact.openDraft": { en: "Open Email Draft", he: "פתח טיוטת אימייל" },
-  "contact.draftHelp": { en: "This form opens your email app. Review the draft and send it there, or email shalev@osher.cc directly.", he: "הטופס פותח את אפליקציית האימייל שלכם. בדקו ושלחו את הטיוטה שם, או כתבו ישירות אל shalev@osher.cc." },
-  "contact.draftPrepared": { en: "Finish sending in your email app. The website has not sent or saved your message.", he: "השלימו את השליחה באפליקציית האימייל. האתר לא שלח ולא שמר את ההודעה." },
-  "contact.openTo": {
-    en: "I'm open to new opportunities in Technical Support, DevOps, and Cyber Security. If you have a suitable role or project, contact me by email or phone.",
-    he: "אני פתוח להזדמנויות חדשות בתמיכה טכנית, DevOps ואבטחת סייבר. אם יש לכם תפקיד או פרויקט מתאים, פנו אליי באימייל או בטלפון.",
-  },
-
-  "footer.rights": { en: "© 2026 Shalev Osher. All rights reserved", he: "© 2026 שליו אושר. כל הזכויות שמורות" },
-
-  // 404 / Not Found
-  "notFound.badge": { en: "404 / Route lost", he: "404 / נתיב אבד" },
-  "notFound.title": { en: "Page Not Found", he: "הדף לא נמצא" },
-  "notFound.description": {
-    en: "The path {path} does not exist in this system.",
-    he: "הנתיב {path} לא קיים במערכת.",
-  },
-  "notFound.home": { en: "Return Home", he: "חזרה לדף הבית" },
-  "notFound.back": { en: "Go Back", he: "חזרה אחורה" },
-
-  // Accessibility
-  "a11y.title": { en: "Accessibility", he: "נגישות" },
-  "a11y.contentAdj": { en: "Content Adjustments", he: "התאמות תוכן" },
-  "a11y.visualAdj": { en: "Visual Adjustments", he: "התאמות חזותיות" },
-  "a11y.navigation": { en: "Navigation & Orientation", he: "ניווט וכיוון" },
-  "a11y.reset": { en: "Reset All Settings", he: "איפוס הגדרות" },
-  "a11y.textSize": { en: "Text Size", he: "גודל טקסט" },
-  "a11y.lineHeight": { en: "Line Height", he: "גובה שורה" },
-  "a11y.highContrast": { en: "High Contrast", he: "ניגודיות גבוהה" },
-  "a11y.invertColors": { en: "Invert Colors", he: "היפוך צבעים" },
-  "a11y.hideImages": { en: "Hide Images", he: "הסתר תמונות" },
-  "a11y.highlightTitles": { en: "Highlight Titles", he: "הדגש כותרות" },
-  "a11y.highlightLinks": { en: "Highlight Links", he: "הדגש קישורים" },
-  "a11y.largeCursor": { en: "Large Cursor", he: "סמן גדול" },
-  "a11y.readingGuide": { en: "Reading Guide", he: "מדריך קריאה" },
-  "a11y.focusHighlight": { en: "Focus Highlight", he: "הדגשת מיקוד" },
-  "a11y.stopAnimations": { en: "Stop Animations", he: "עצור אנימציות" },
-  "a11y.textSpacing": { en: "Text Spacing", he: "ריווח טקסט" },
-  "a11y.readableFont": { en: "Readable Font", he: "פונט קריא" },
-  "a11y.dyslexia": { en: "Dyslexia Friendly", he: "ידידותי לדיסלקציה" },
-  "a11y.saturation": { en: "Saturation", he: "רוויה" },
-  "a11y.normal": { en: "Normal", he: "רגיל" },
-  "a11y.large": { en: "Large", he: "גדול" },
-  "a11y.xLarge": { en: "X-Large", he: "גדול מאוד" },
-  "a11y.low": { en: "Low", he: "נמוך" },
-  "a11y.grayscale": { en: "Grayscale", he: "גווני אפור" },
-  "a11y.extraLarge": { en: "Extra Large", he: "גדול במיוחד" },
-  "a11y.default": { en: "Default", he: "ברירת מחדל" },
-  "a11y.left": { en: "Left", he: "שמאל" },
-  "a11y.center": { en: "Center", he: "מרכז" },
-  "a11y.right": { en: "Right", he: "ימין" },
-  "a11y.align": { en: "Align", he: "יישור" },
+const translations: Record<string, string> = {
+  "nav.about": "About",
+  "nav.skills": "Skills",
+  "nav.experience": "Experience",
+  "nav.certifications": "Certifications",
+  "nav.contact": "Contact",
+  "hero.portfolio": "Portfolio",
+  "hero.hello": "Hello, I'm",
+  "hero.viewExperience": "View Experience",
+  "hero.getInTouch": "Get in Touch",
+  "hero.downloadCV": "Download CV",
+  "hero.viewCV": "View CV",
+  "hero.downloadPdf": "Download PDF",
+  "hero.cvPreview": "CV Preview",
+  "hero.role1": "Technical Support Specialist",
+  "hero.role2": "System Administrator",
+  "hero.role3": "DevOps Enthusiast",
+  "hero.role4": "Full Stack Developer",
+  "about.title": "About Me",
+  "about.p1":
+    "Experienced Technical Support Specialist with a proven track record of ensuring smooth operation of servers and microservices. Skilled in troubleshooting and resolving technical issues promptly, with extensive networking and system administration expertise.",
+  "about.p2":
+    "Adept at utilizing SQL databases, Kibana, and AWS for log analysis and service recording. Successfully manages a technical department, fostering efficient workflow and effective issue resolution. Demonstrates proficiency in working with internal ticketing systems and adhering to SLA workflows.",
+  "about.yearsExp": "Years Experience",
+  "about.companies": "Companies",
+  "about.certHours": "Cert. Hours",
+  "skills.title": "My Skills",
+  "skills.subtitle":
+    "Technologies and tools I use to solve complex technical challenges",
+  "skills.serverMgmt": "Server Management",
+  "skills.serverDesc": "Troubleshooting, server monitoring, query execution",
+  "skills.networking": "Networking & VoIP",
+  "skills.networkDesc": "ASTERISK, VoIP, network security, protocols",
+  "skills.databases": "Databases",
+  "skills.dbDesc": "SQL, MongoDB, log analysis with Kibana",
+  "skills.cloud": "Cloud Services",
+  "skills.cloudDesc": "AWS, API Integrations, DevOps",
+  "skills.cyber": "Cyber Security",
+  "skills.cyberDesc": "MCSA, Linux, Cyber Security Specialist",
+  "skills.support": "Technical Support",
+  "skills.supportDesc": "Call center management, Jira, SLA, VIP clients",
+  "skills.heatmapTitle": "Skills Proficiency Map",
+  "skills.beginner": "Beginner",
+  "skills.expert": "Expert",
+  "github.title": "GitHub Projects",
+  "github.subtitle": "Open source projects and repositories from my GitHub",
+  "github.noDesc": "No description available",
+  "exp.title": "Work Experience",
+  "exp.subtitle": "My professional journey in technology and technical support",
+  "edu.title": "Education & Certifications",
+  "edu.subtitle":
+    "Professional training and certifications in cyber security and technology",
+  "edu.certifications": "Certifications",
+  "edu.languages": "Languages",
+  "edu.fluent": "Fluent",
+  "edu.native": "Native",
+  "edu.viewCert": "View Certificate",
+  "contact.title": "Let's Connect",
+  "contact.subtitle":
+    "Looking for a Technical Support Specialist? I'd love to hear from you",
+  "contact.email": "Email",
+  "contact.phone": "Phone",
+  "contact.location": "Location",
+  "contact.locationVal": "Ashkelon, Israel",
+  "contact.fullName": "Full Name",
+  "contact.emailPlaceholder": "Email",
+  "contact.messagePlaceholder": "How can I help you?",
+  "contact.errorName": "Enter your name",
+  "contact.errorEmail": "Enter your email address",
+  "contact.errorEmailFormat": "Enter a valid email address",
+  "contact.errorMessage": "Enter your message",
+  "contact.openDraft": "Open Email Draft",
+  "contact.draftHelp":
+    "This form opens your email app. Review the draft and send it there, or email shalev@osher.cc directly.",
+  "contact.draftPrepared":
+    "Finish sending in your email app. The website has not sent or saved your message.",
+  "contact.openTo":
+    "I'm open to new opportunities in Technical Support, DevOps, and Cyber Security. If you have a suitable role or project, contact me by email or phone.",
+  "footer.rights": "© 2026 Shalev Osher. All rights reserved",
+  "notFound.badge": "404 / Route lost",
+  "notFound.title": "Page Not Found",
+  "notFound.description": "The path {path} does not exist in this system.",
+  "notFound.home": "Return Home",
+  "notFound.back": "Go Back",
+  "a11y.title": "Accessibility",
+  "a11y.contentAdj": "Content Adjustments",
+  "a11y.visualAdj": "Visual Adjustments",
+  "a11y.navigation": "Navigation & Orientation",
+  "a11y.reset": "Reset All Settings",
+  "a11y.textSize": "Text Size",
+  "a11y.lineHeight": "Line Height",
+  "a11y.highContrast": "High Contrast",
+  "a11y.invertColors": "Invert Colors",
+  "a11y.hideImages": "Hide Images",
+  "a11y.highlightTitles": "Highlight Titles",
+  "a11y.highlightLinks": "Highlight Links",
+  "a11y.largeCursor": "Large Cursor",
+  "a11y.readingGuide": "Reading Guide",
+  "a11y.focusHighlight": "Focus Highlight",
+  "a11y.stopAnimations": "Stop Animations",
+  "a11y.textSpacing": "Text Spacing",
+  "a11y.readableFont": "Readable Font",
+  "a11y.dyslexia": "Dyslexia Friendly",
+  "a11y.saturation": "Saturation",
+  "a11y.normal": "Normal",
+  "a11y.large": "Large",
+  "a11y.xLarge": "X-Large",
+  "a11y.low": "Low",
+  "a11y.grayscale": "Grayscale",
+  "a11y.extraLarge": "Extra Large",
+  "a11y.default": "Default",
+  "a11y.left": "Left",
+  "a11y.center": "Center",
+  "a11y.right": "Right",
+  "a11y.align": "Align",
 };
 
 const LanguageContext = createContext<LanguageContextType | null>(null);
 
 export const LanguageProvider = ({ children }: { children: ReactNode }) => {
-  const [lang, setLangState] = useState<Lang>(() => {
-    try {
-      return (localStorage.getItem("site-lang") as Lang) || "en";
-    } catch {
-      return "en";
-    }
-  });
-
-  const setLang = (l: Lang) => {
-    setLangState(l);
-    localStorage.setItem("site-lang", l);
-  };
-
   useEffect(() => {
-    const dir = lang === "he" ? "rtl" : "ltr";
-    document.documentElement.dir = dir;
-    document.documentElement.lang = lang;
+    try {
+      localStorage.removeItem("site-lang");
+    } catch {
+      // Storage can be unavailable in privacy-restricted browsers.
+    }
+    document.documentElement.dir = "ltr";
+    document.documentElement.lang = "en";
     document.title = "Shalev Osher";
-  }, [lang]);
+  }, []);
 
-  const t = (key: string): string => {
-    return translations[key]?.[lang] || key;
-  };
-
-  const dir = lang === "he" ? "rtl" : "ltr";
+  const t = (key: string): string => translations[key] ?? key;
 
   return (
-    <LanguageContext.Provider value={{ lang, setLang, t, dir }}>
+    <LanguageContext.Provider value={{ lang: "en", t, dir: "ltr" }}>
       {children}
     </LanguageContext.Provider>
   );
 };
 
 export const useLanguage = () => {
-  const ctx = useContext(LanguageContext);
-  if (!ctx) throw new Error("useLanguage must be used within LanguageProvider");
-  return ctx;
+  const context = useContext(LanguageContext);
+  if (!context) {
+    throw new Error("useLanguage must be used within LanguageProvider");
+  }
+  return context;
 };

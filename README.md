@@ -4,7 +4,6 @@ Public portfolio for Shalev Osher, built with React, TypeScript, Vite, Tailwind 
 
 ## Features
 
-- Hebrew and English content with right-to-left support.
 - Certifications, experience, CV preview and direct PDF download.
 - Public project listings from [shalev-os on GitHub](https://github.com/shalev-os).
 - Email and telephone contact links. The contact form prepares a draft in the visitor's email app; the visitor reviews and sends it there.
