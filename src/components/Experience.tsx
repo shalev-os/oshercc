@@ -3,14 +3,14 @@ import "./career.css";
 
 const experiencesData = [
     {
-      company: "Voicenter", role: "Technical Support Specialist Tier 2", period: "2023 - Present",
+      company: "Voicenter", role: "Technical Support Specialist Tier 2", period: "2023 - 2026",
       description: [
-        "Collaborating closely with Development and DevOps teams using Jira to address issues and enhance workflows",
-        "Delivering comprehensive support to VIP and standard clients across the company's suite of products",
-        "Working with API integrations (leveraging Kibana), networking, and Amazon Web Services (AWS)",
-        "Conducting rigorous QA testing on features and servers as per requests from Development and DevOps teams",
-        "Co-developing a troubleshooting tool in collaboration with the Development team",
-        "Proactively diagnosing and resolving live issues across a multitude of servers using PRTG",
+        "Collaborated with Development and DevOps teams using Jira to resolve issues and improve workflows",
+        "Supported VIP and standard clients across the company's products",
+        "Worked with API integrations, Kibana, networking, and Amazon Web Services (AWS)",
+        "Tested features and servers at the request of Development and DevOps teams",
+        "Co-developed a troubleshooting tool with the Development team",
+        "Diagnosed and resolved live issues across servers using PRTG",
       ],
     },
     {
