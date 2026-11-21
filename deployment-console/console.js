@@ -177,7 +177,7 @@ function eventContext(event) {
       copy.setAttribute("aria-label", "Copy IP address");
       copy.addEventListener("click", async () => {
         try {
-          await navigator.clipboard.writeText(value);
+          await window.navigator.clipboard.writeText(value);
           copy.textContent = "Copied";
           copy.setAttribute("aria-label", "IP address copied");
         } catch {
