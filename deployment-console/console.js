@@ -181,6 +181,7 @@ function resetEventRows() {
 function renderEvents() {
   const phrase = byId("event-query").value.trim().toLowerCase();
   const site = byId("event-site").value;
+  const category = byId("event-category").value;
   const range = Number(byId("event-range").value);
   const window = selectedWindow === null ? null : windowBounds(selectedWindow);
   const scopedEvents = eventEntries.filter((event) => {
@@ -188,6 +189,7 @@ function renderEvents() {
     const inWindow = !window || (time >= window[0] && (selectedWindow === windowCount - 1 ? time <= window[1] : time < window[1]));
     return inWindow && (!range || time >= sampledTime - range * hour) &&
       (!site || event.site === site) &&
+      (!category || event.component === category) &&
       (!phrase || [event.message, event.site, event.component].some((value) => value.toLowerCase().includes(phrase)));
   });
   for (const button of document.querySelectorAll("[data-severity]")) {
@@ -302,12 +304,18 @@ export function renderStatus(data) {
   byId("next-scan").textContent = security.integrityTimer ? timestamp(security.nextScan) : "Timer inactive";
   renderHost(data.host);
   const sourceSelect = byId("event-site");
-  for (const site of independentSites) {
+  for (const site of sites) {
     if (![...sourceSelect.options].some((option) => option.value === site.domain)) {
       sourceSelect.add(new Option(site.domain, site.domain));
     }
   }
   eventEntries = data.events.entries;
+  const categorySelect = byId("event-category");
+  for (const category of [...new Set(eventEntries.map(event => event.component))].sort()) {
+    if (![...categorySelect.options].some(option => option.value === category)) {
+      categorySelect.add(new Option(category, category));
+    }
+  }
   sampledTime = Date.parse(data.sampled);
   clockOffset = sampledTime - Date.now();
   byId("event-update").textContent = data.events.updated
@@ -336,7 +344,7 @@ async function refresh() {
   }
 }
 
-for (const id of ["event-query", "event-site"]) {
+for (const id of ["event-query", "event-site", "event-category"]) {
   byId(id).addEventListener("input", resetEventRows);
 }
 byId("event-range").addEventListener("input", () => {
@@ -351,7 +359,7 @@ for (const button of document.querySelectorAll("[data-severity]")) {
   });
 }
 byId("clear-filters").addEventListener("click", () => {
-  for (const id of ["event-query", "event-site", "event-range"]) byId(id).value = "";
+  for (const id of ["event-query", "event-site", "event-category", "event-range"]) byId(id).value = "";
   severity = "";
   selectedWindow = null;
   updateChartSelection();
