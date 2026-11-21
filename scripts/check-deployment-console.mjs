@@ -170,6 +170,22 @@ if (live) {
   assert.match(events()[0].textContent, /Kernel/);
 } else {
   assert.equal(requests, 0);
+  const sources = byId("source-breakdown");
+  const consoleSource = sources.querySelector('[data-source="console.example"]');
+  assert.match(consoleSource.textContent, /console\.example · 1/);
+  consoleSource.click();
+  assert.equal(byId("event-site").value, "console.example");
+  assert.equal(events().length, 1);
+  assert.equal(sources.querySelector('[data-source="console.example"]').getAttribute("aria-pressed"), "true");
+  sources.querySelector('[data-source=""]').click();
+  assert.equal(events().length, 5);
+  const query = byId("event-query");
+  query.value = "no matching sample event";
+  query.dispatchEvent(new window.Event("input"));
+  assert.equal(byId("reset-empty-results").hidden, false);
+  byId("reset-empty-results").click();
+  assert.equal(query.value, "");
+  assert.equal(events().length, 5);
   document.body.dispatchEvent(new window.KeyboardEvent("keydown", { key: "/", bubbles: true }));
   assert.equal(document.activeElement, byId("event-query"));
   const order = byId("event-order");
