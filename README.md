@@ -31,6 +31,6 @@ The public GitHub projects section requests GitHub's public API directly and hid
 
 Repository: [shalev-os/oshercc](https://github.com/shalev-os/oshercc).
 
-Serve `dist/` as static files with a history fallback to `index.html`. The checked-in `public/web.config` supplies IIS rewrite rules for standalone hosting. The signed deployment pipeline preserves the production server's existing `web.config` rather than replacing it with build output.
+Production serves the static build on Linux with Nginx behind Cloudflare Tunnel. GitHub Actions validates changes and the server automatically deploys validated updates to `main`. See the [deployment guide](docs/deployment.md) for the release process. The checked-in `public/web.config` supplies IIS rewrite rules for standalone hosting.
 
 Use the npm lockfile as the sole dependency lockfile. No database migration or service-provider setup is needed.

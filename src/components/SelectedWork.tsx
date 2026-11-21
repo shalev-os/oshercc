@@ -3,9 +3,9 @@ import mazonPreview from "@/assets/mazonhaosher-project.jpg";
 import "./selected-work.css";
 
 const releaseSteps = [
-  { icon: GitBranch, title: "GitHub", detail: "Review and build" },
-  { icon: PackageCheck, title: "Release", detail: "Signed artifact" },
-  { icon: Server, title: "IIS", detail: "Deploy and verify" },
+  { icon: GitBranch, title: "GitHub Actions", detail: "Test and build" },
+  { icon: PackageCheck, title: "Linux", detail: "Deploy validated main" },
+  { icon: Server, title: "Nginx", detail: "Serve and verify" },
 ];
 
 const projects = [
@@ -13,8 +13,8 @@ const projects = [
     index: "01",
     kind: "Personal portfolio · Infrastructure",
     title: "osher.cc",
-    description: "My portfolio is also a live infrastructure project. My setup includes a Windows Server running IIS and a separate Linux server. Each portfolio release is built in GitHub Actions, signed, and checked on IIS. The deployment receiver keeps a backup so it can recover if the local health check fails.",
-    stack: ["React", "GitHub Actions", "Windows Server", "Linux", "Cloudflare"],
+    description: "osher.cc runs on Linux with Nginx behind Cloudflare Tunnel. My infrastructure also includes a separate Windows Server running IIS. GitHub Actions validates changes, and the Linux server automatically deploys the validated main branch. If the local health check fails, the server restores the previous release.",
+    stack: ["React", "GitHub Actions", "Linux", "Nginx", "Cloudflare Tunnel"],
     website: "https://osher.cc/",
     repository: "https://github.com/shalev-os/oshercc",
   },
@@ -23,7 +23,7 @@ const projects = [
     kind: "Small business · Web catalogue",
     title: "Mazon HaOsher",
     description: "A Hebrew storefront for Almog’s handmade cookies, cakes, and desserts. Her photography anchors a browsable catalogue, with product details and a WhatsApp enquiry for each item.",
-    stack: ["React", "TypeScript", "Hebrew RTL", "IIS"],
+    stack: ["React", "TypeScript", "Hebrew RTL", "Linux", "Nginx"],
     website: "https://mazonhaosher.co.il/",
     repository: "https://github.com/shalev-os/mazonhaosher",
   },
