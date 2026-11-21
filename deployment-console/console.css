@@ -139,7 +139,7 @@ meter::-moz-meter-bar{background:var(--gold)}
 @media(max-width:900px){.brand-sub{display:none}}
 @media(max-width:700px){.bar{flex-wrap:wrap;gap:.45rem .7rem}.dashboard-nav{order:1;flex-basis:100%;padding:.25rem 0 .3rem}}
 @media(max-width:650px){.sites{grid-template-columns:1fr}.brand,.bar-actions{gap:.5rem}.brand-sub{display:none}.log-controls{grid-template-columns:1fr 1fr}.log-controls label:first-child{grid-column:1/-1}.activity-chart{grid-template-columns:repeat(3,minmax(0,1fr))}.activity li{grid-template-columns:7ch minmax(0,1fr);gap:.25rem .6rem}.activity time{grid-column:2;text-align:left}}
-@media(max-width:460px){.bar{height:auto;min-height:64px;gap:.5rem;flex-wrap:wrap;padding-block:.65rem}.bar-actions{flex-wrap:wrap}.bar-actions button{padding:.45rem .65rem}}
+@media(max-width:460px){h2[id],#overview{scroll-margin-top:1rem}.bar{position:static;height:auto;min-height:64px;gap:.5rem;flex-wrap:wrap;padding-block:.65rem}.bar-actions{flex-wrap:wrap}.bar-actions button{padding:.45rem .65rem}}
 .health-summary{padding:1rem 1.4rem}
 .health-summary p{margin:0;color:var(--muted)}
 .health-summary ul{display:grid;gap:.35rem;margin:.6rem 0 0;padding-inline-start:1.25rem;color:var(--gold)}
