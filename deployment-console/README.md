@@ -10,6 +10,8 @@ An interactive demo of the private dashboard that monitors the Linux and Nginx d
 - Set the refresh rate to 5–60 seconds or 10–60 minutes.
 - Inspect activity over 24 hours and filter the event log by time range, source, severity, or search. Read structured event details, open each event as JSON, or export the filtered set as JSON or Excel-compatible CSV.
 - Inspect recent origin page loads with HTTP status, origin response time, response bytes, and protocol. These records count observed document requests and omit visitor IP addresses, URLs, and browser identifiers.
+- Use live shortcuts for builds, rollbacks, integrity alerts, and page loads.
+- Browse up to 14 days of retained events, capped at 1,250 page loads and 1,250 operational events. The activity chart shows the last 24 hours.
 - Switch between a healthy release, an active deployment, a rollback, and an integrity alert.
 
 The console and demo use the same frontend files. On the deployment hostname the frontend reads the protected status API. On the portfolio it loads browser-local sample data with no requests to production. The public status API path returns 404.

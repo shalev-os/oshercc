@@ -18,10 +18,10 @@ const event = (minutes, source, component, level, message, details) => ({
 const portfolio = "portfolio.example";
 const catalog = "catalog.example";
 const scenarios = {
-  healthy: "Both sample sites are live and the latest file integrity check passed.",
+  healthy: "All sample sites are live and the latest file integrity check passed.",
   deploying: "A validated commit arrived. The existing release stays online while the server builds.",
   rollback: "The candidate failed its health check. The console shows the failure while the prior release serves traffic.",
-  integrity: "AIDE flagged a baseline change for review. Both sample sites are still serving traffic.",
+  integrity: "AIDE flagged a baseline change for review. All sample sites are still serving traffic.",
 };
 
 function scenarioData(mode) {
@@ -53,6 +53,9 @@ function scenarioData(mode) {
     event(-105, "server", "Fail2ban", "warning", "Fail2ban blocked an SSH source.", { jail: "sshd", action: "blocked", sourceIp: "198.51.100.24" }),
     event(-140, "server", "Auditd", "info", "Web server configuration changed", { auditEventId: "1024", rule: "demo_web_config", result: "success" }),
     event(-210, "server", "AIDE", "success", "Protected files match the integrity baseline", { baseline: "matched", outcome: "verified" }),
+    event(-1800, catalog, "Deploy", "success", "Earlier release is serving traffic", { commit: "f82306c", healthCheck: "passed" }),
+    event(-4320, portfolio, "Visits", "info", "Page loaded", { page: "Home page", httpStatus: 200, originResponseMs: 13, responseBytes: 4976, originProtocol: "HTTP/1.1" }),
+    event(-12000, "server", "Auditd", "info", "Service configuration changed", { auditEventId: "315", rule: "demo_service_config", result: "success" }),
   ];
   if (mode === "deploying") {
     Object.assign(sites[0], { deploying: true, building: true, lastCheck: time(-1), signal: time(-1) });

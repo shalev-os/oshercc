@@ -67,7 +67,8 @@ try {
   globalThis.setInterval = setInterval;
 }
 
-assert.equal(document.querySelector(".demo-controls").hidden, live);
+assert.equal(byId("demo-controls").hidden, live);
+assert.equal(byId("live-controls").hidden, !live);
 assert.equal(byId("portfolio-link").hidden, live);
 assert.equal(byId("refresh").hidden, false);
 assert.equal(byId("activity-chart").children.length, 6);
@@ -92,6 +93,10 @@ if (live) {
   byId("json-panel").open = true;
   byId("json-panel").dispatchEvent(new dom.window.Event("toggle"));
   assert.deepEqual(JSON.parse(byId("event-json").textContent), [event]);
+  document.querySelector('[data-live-view="integrity"]').click();
+  assert.equal(events().length, 0);
+  document.querySelector('[data-live-view="overview"]').click();
+  assert.equal(events().length, 1);
 } else {
   assert.equal(requests, 0);
   assert.equal(byId("audit-status").textContent, "Active");
@@ -106,9 +111,17 @@ if (live) {
   const category = byId("event-category");
   category.value = "Visits";
   category.dispatchEvent(new dom.window.Event("input"));
-  assert.equal(events().length, 3);
+  assert.equal(events().length, 4);
   events()[0].querySelector(".event-inspect").click();
   assert.equal(JSON.parse(events()[0].querySelector(".event-json").textContent).details.httpStatus, 200);
+  byId("clear-filters").click();
+  const range = byId("event-range");
+  range.value = "48";
+  range.dispatchEvent(new dom.window.Event("input"));
+  assert.match(byId("event-count").textContent, /of 13 events/);
+  range.value = "336";
+  range.dispatchEvent(new dom.window.Event("input"));
+  assert.match(byId("event-count").textContent, /of 15 events/);
   byId("clear-filters").click();
   scenario("deploying");
   assert.equal(byId("building").textContent, "1");

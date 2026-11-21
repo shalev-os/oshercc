@@ -15,7 +15,7 @@ if (live) {
 } else {
   document.title = "Deployment Console Demo · Osher";
   byId("portfolio-link").hidden = false;
-  document.querySelector(".demo-controls").hidden = false;
+  byId("demo-controls").hidden = false;
 }
 
 export const ready = live ? Promise.resolve() : import("./demo.js");

@@ -43,12 +43,20 @@
         <h1>Deployment Console<span>.</span></h1>
         <p id="console-description"></p>
       </div>
-      <div class="demo-controls" aria-label="Demo scenarios" hidden>
-        <p id="scenario-description" aria-live="polite">Choose a scenario to explore.</p>
+      <div id="demo-controls" class="quick-controls" role="group" aria-label="Demo scenarios" hidden>
+        <p id="scenario-description" aria-live="polite">All sample sites are live and file integrity checks passed.</p>
         <button type="button" data-scenario="healthy" aria-pressed="true">Healthy</button>
         <button type="button" data-scenario="deploying" aria-pressed="false">Deploying</button>
         <button type="button" data-scenario="rollback" aria-pressed="false">Rollback</button>
         <button type="button" data-scenario="integrity" aria-pressed="false">Integrity alert</button>
+      </div>
+      <div id="live-controls" class="quick-controls" role="group" aria-label="Production log views" hidden>
+        <p>Filter live events</p>
+        <button type="button" data-live-view="overview">All events</button>
+        <button type="button" data-live-view="builds">Builds</button>
+        <button type="button" data-live-view="rollbacks">Rollbacks</button>
+        <button type="button" data-live-view="integrity">Integrity alerts</button>
+        <button type="button" data-live-view="visits">Visits</button>
       </div>
       <div class="metrics" aria-label="Production summary">
         <div><strong id="live">–</strong><span>Sites online</span></div>
@@ -118,7 +126,7 @@
           <label>Search<input id="event-query" type="search" placeholder="Release, component, or message"></label>
           <label>Source<select id="event-site"><option value="">All sources</option><option value="server">Server</option></select></label>
           <label>Category<select id="event-category"><option value="">All categories</option></select></label>
-          <label>Time range<select id="event-range"><option value="">All retained events</option><option value="1">Last hour</option><option value="24">Last 24 hours</option><option value="168">Last 7 days</option></select></label>
+          <label>Time range<select id="event-range"><option value="">All retained events</option><option value="1">Last hour</option><option value="24">Last 24 hours</option><option value="48">Last 48 hours</option><option value="168">Last 7 days</option><option value="336">Last 14 days</option></select></label>
         </div>
         <p class="log-count" id="event-count" role="status"></p>
         <ol id="events"></ol>
