@@ -170,7 +170,7 @@ if (live) {
   assert.equal(byId("traffic-rows").rows.length, 3);
   const consoleTraffic = [...byId("traffic-rows").rows].find(row => row.cells[0].textContent === "console.example");
   assert.deepEqual([...consoleTraffic.cells].map(cell => cell.textContent), ["console.example", "1", "0 / 0", "9 ms"]);
-  assert.equal(byId("sites").lastElementChild.querySelector(".build-window-note").textContent, "The fallback timer checks for a validated release.");
+  assert.equal(byId("sites").firstElementChild.querySelector(".build-window-note").textContent, "The fallback timer checks for a validated release.");
   byId("event-category").value = "Visits";
   byId("event-category").dispatchEvent(new dom.window.Event("input"));
   assert.match(events()[0].querySelector(".event-context").textContent, /203\.0\.113\./);
@@ -203,8 +203,17 @@ if (live) {
   range.dispatchEvent(new dom.window.Event("input"));
   assert.match(byId("event-count").textContent, /of 15 events/);
   byId("clear-filters").click();
+  const manualCard = document.querySelector('[data-deploy-target="console.example"]').closest(".card");
+  assert.match(manualCard.querySelector(".build-window").textContent, /Deployment schedule/);
+  assert.match(manualCard.querySelector(".build-window-note").textContent, /simulated deployment/);
+  const demoActions = [...document.querySelectorAll(".workflow")];
+  assert.equal(demoActions.length, 3);
+  assert.equal(demoActions[1].href, "https://github.com/shalev-os/mazonhaosher/actions");
+  document.querySelector('[aria-label="Deploy catalog.example now"]').click();
+  assert.match(byId("scenario-description").textContent, /Simulated deployment for catalog\.example/);
+  assert.equal(byId("building").textContent, "1");
   scenario("deploying");
-  assert.equal(byId("building").textContent, "2");
+  assert.equal(byId("building").textContent, "1");
   assert.equal(document.querySelector(".build-state").textContent, "Building now");
   assert.equal(byId("host-load").textContent, "1.18");
   scenario("rollback");

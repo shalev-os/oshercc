@@ -9,7 +9,9 @@ Production runs Nginx on Linux behind Cloudflare Tunnel. After successful valida
 
 The server swaps the site directory atomically and verifies that local Nginx serves the new index. It restores the prior directory if that check fails and keeps the previous successful release in `/var/www/.osher.cc-previous`. A revert on `main` follows the normal validation and deployment path.
 
-The same release contains the Deployment Console frontend. The public portfolio serves it as a sample-data demo, and the authenticated deployment hostname serves it against the Linux status API. CI exercises both modes before the release can be published.
+The portfolio release includes the sample-data demo at `/deployment-console/`. The authenticated dashboard at `deploy.osher.cc` uses its own build, document root, previous release and deployed commit record. Both deployments use a validated commit on `main`, and CI exercises both frontend modes.
+
+Deploy the dashboard on demand using the Deployment Console card or `sudo systemctl start osher-site-deploy@deploy.osher.cc.service`. The service publishes to `/var/www/deploy.osher.cc` and records the commit in `/var/lib/osher-site-releases/deploy.osher.cc`. The portfolio notification and timer publish only the portfolio and its demo.
 
 Check production logs with `journalctl -u osher-site-deploy@osher.cc -u osher-site-build@osher.cc`. Start a check immediately with `sudo systemctl start osher-site-deploy@osher.cc`. The last deployed commit is recorded in `/var/lib/osher-site-releases/osher.cc`.
 
