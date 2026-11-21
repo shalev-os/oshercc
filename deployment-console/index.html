@@ -9,7 +9,13 @@
 </head>
 <body>
   <header class="bar">
-    <div class="brand"><span class="mark" aria-hidden="true">O</span> OSHER <span class="brand-sub">/ DEPLOY</span></div>
+    <a class="brand" href="#overview">Osher<span class="brand-sub">Deployment Console</span></a>
+    <nav class="dashboard-nav" aria-label="Dashboard navigation">
+      <a href="#sites-heading">Sites</a>
+      <a href="#security-heading">Security</a>
+      <a href="#host-heading">Host</a>
+      <a href="#activity-heading">Event log</a>
+    </nav>
     <div class="bar-actions">
       <a id="portfolio-link" href="/#projects" hidden>Portfolio</a>
       <span id="connection" role="status" hidden>Connecting</span>
@@ -38,10 +44,10 @@
     </div>
   </header>
   <main>
-    <section class="hero">
+    <section class="hero" id="overview">
       <div class="hero-content">
         <p class="eyebrow" id="environment-label"></p>
-        <h1>Deployment Console<span>.</span></h1>
+        <h1>Deployment <span>Console</span></h1>
         <p id="console-description"></p>
       </div>
       <div id="demo-controls" class="quick-controls" role="group" aria-label="Demo scenarios" hidden>
