@@ -10,7 +10,6 @@ const chartTime = new Intl.DateTimeFormat(undefined, { hour: "numeric", minute: 
 const hour = 3600000;
 const windowSize = 4 * hour;
 const windowCount = 6;
-const refreshIntervals = { fast: 10000, ultra: 5000 };
 const refreshPreference = "osher-console-refresh";
 const pageSize = 12;
 let visibleCount = pageSize;
@@ -285,7 +284,9 @@ export function startRefresh(update) {
   const button = byId("refresh");
   let timer;
   try {
-    if (window.localStorage.getItem(refreshPreference) === "ultra") select.value = "ultra";
+    const saved = window.localStorage.getItem(refreshPreference);
+    const preferred = saved === "ultra" ? "5" : saved;
+    if ([...select.options].some(option => option.value === preferred)) select.value = preferred;
   } catch {
     // The current page still works when browser storage is unavailable.
   }
@@ -293,7 +294,7 @@ export function startRefresh(update) {
     clearInterval(timer);
     timer = setInterval(() => {
       if (!document.hidden) update();
-    }, refreshIntervals[select.value]);
+    }, Number(select.value) * 1000);
   };
   select.addEventListener("change", () => {
     try {
