@@ -26,6 +26,7 @@ let clockOffset = 0;
 const severities = new Set();
 let hidePageLoads = false;
 let relatedFilter = null;
+let investigation = null;
 let pinnedOnly = false;
 const pinnedEvents = new Map();
 const ipFields = ["clientIp", "sourceIp"];
@@ -168,14 +169,16 @@ function updateChartSelection() {
   }
 }
 
-function renderChart() {
+function renderChart(investigationBounds) {
   const chart = byId("activity-chart");
   const activeIndex = chart.contains(document.activeElement) ? document.activeElement.dataset.index : undefined;
   const range = Number(byId("event-range").value);
   const filtered = matchingEvents;
   const earliest = filtered.reduce((minimum, event) => Math.min(minimum, Date.parse(event.time)), sampledTime);
-  const span = range ? range * hour : Math.max(windowSize, sampledTime - earliest);
-  const startTime = sampledTime - span;
+  const endTime = investigationBounds?.[1] ?? sampledTime;
+  const span = investigationBounds ? endTime - investigationBounds[0]
+    : range ? range * hour : Math.max(windowSize, sampledTime - earliest);
+  const startTime = endTime - span;
   chartWindows = Array.from({ length: windowCount }, (_, index) => {
     const start = startTime + span * index / windowCount;
     return [start, startTime + span * (index + 1) / windowCount];
@@ -360,19 +363,31 @@ function renderEvents() {
   for (const button of document.querySelectorAll("[data-range]")) {
     button.setAttribute("aria-pressed", String(button.dataset.range === byId("event-range").value));
   }
+  const investigationRadius = Number(byId("investigation-radius").value) * 60000;
+  const investigationBounds = investigation
+    ? [investigation.time - investigationRadius, investigation.time + investigationRadius] : null;
   const bounds = selectedWindow === null ? null : windowBounds(selectedWindow);
+  const timeFormat = byId("event-utc").getAttribute("aria-pressed") === "true" ? logTimeUtc : logTime;
+  byId("investigation").hidden = !investigation;
+  byId("investigation-anchor").textContent = investigation
+    ? `${timeFormat.format(investigation.time)} · ${investigation.event.message}` : "";
   byId("related-filter").hidden = !relatedFilter;
   byId("related-value").textContent = relatedFilter ? `${relatedFilter.label} ${relatedFilter.value}` : "";
   byId("hide-page-loads").setAttribute("aria-pressed", String(hidePageLoads));
   byId("pinned-events").setAttribute("aria-pressed", String(pinnedOnly));
   byId("pinned-count").textContent = pinnedEvents.size;
-  const entries = pinnedOnly ? [...pinnedEvents.values()] : eventEntries;
+  let entries = pinnedOnly ? [...pinnedEvents.values()] : eventEntries;
+  if (investigation && !pinnedOnly && !entries.some(event =>
+    event.time === investigation.event.time && JSON.stringify(event) === investigation.key)) {
+    entries = [...entries, investigation.event];
+  }
   const eventsAcrossSources = entries.filter((event) => {
     const time = Date.parse(event.time);
     const inWindow = !bounds || (time >= bounds[0] && (selectedWindow === windowCount - 1 ? time <= bounds[1] : time < bounds[1]));
     const matchesRelated = !relatedFilter || relatedFilter.fields.some(field =>
       event.details?.[field] === relatedFilter.value);
-    return (!hidePageLoads || event.component !== "Visits") && matchesRelated && inWindow && (!range || time >= sampledTime - range * hour) &&
+    const inInvestigation = !investigationBounds || (time >= investigationBounds[0] && time <= investigationBounds[1]);
+    return inInvestigation && (!hidePageLoads || event.component !== "Visits") && matchesRelated && inWindow && (!range || time >= sampledTime - range * hour) &&
       (!category || (category === hostErrors ? hostCategories.has(event.component) && event.level === "error" : event.component === category)) &&
       (!phrase || [event.message, event.site, event.component, JSON.stringify(event.details || {})]
         .some((value) => value.toLowerCase().includes(phrase)));
@@ -387,14 +402,14 @@ function renderEvents() {
   matchingEvents = scopedEvents.filter((event) => !severities.size || severities.has(event.level));
   const direction = byId("event-order").value === "oldest" ? 1 : -1;
   matchingEvents.sort((first, second) => direction * (Date.parse(first.time) - Date.parse(second.time)));
-  renderChart();
+  renderChart(investigationBounds);
   const rows = matchingEvents.slice(0, visibleCount);
   byId("event-count").textContent = matchingEvents.length
     ? `Showing ${rows.length} of ${matchingEvents.length} events`
     : pinnedOnly && !pinnedEvents.size ? "No pinned events" : "No matching events";
   byId("reset-empty-results").hidden = Boolean(matchingEvents.length) ||
     !(phrase || site || category || range || selectedWindow !== null || relatedFilter ||
-      severities.size || hidePageLoads || pinnedOnly);
+      severities.size || hidePageLoads || pinnedOnly || investigation);
   const showMore = byId("show-more");
   const nextCount = Math.min(pageSize(), matchingEvents.length - rows.length);
   showMore.hidden = nextCount === 0;
@@ -403,12 +418,12 @@ function renderEvents() {
   byId("export-events").disabled = !matchingEvents.length;
   byId("export-csv").disabled = !matchingEvents.length;
   if (byId("json-panel").open) byId("event-json").textContent = filteredJson();
-  const timeFormat = byId("event-utc").getAttribute("aria-pressed") === "true" ? logTimeUtc : logTime;
   const list = byId("events");
   const active = list.contains(document.activeElement) ? document.activeElement : null;
   const focused = active?.closest("li")?.dataset.event;
   const focusedControl = active?.classList.contains("event-pin") ? ".event-pin"
     : active?.classList.contains("event-download") ? ".event-download"
+    : active?.classList.contains("event-investigate") ? ".event-investigate"
     : active?.classList.contains("event-copy-summary") ? ".event-copy-summary"
     : active?.dataset.step ? `[data-step="${active.dataset.step}"]:enabled` : ".event-inspect";
   list.replaceChildren(...rows.map((event, index) => {
@@ -424,6 +439,10 @@ function renderEvents() {
     const key = JSON.stringify(event);
     const pinned = pinnedEvents.has(key);
     item.dataset.event = key;
+    if (investigation?.key === key) {
+      item.dataset.investigationAnchor = "";
+      source.append(" · Investigation starting point");
+    }
     if (pinned) {
       const marker = document.createElement("small");
       marker.className = "event-pinned";
@@ -484,7 +503,18 @@ function renderEvents() {
           copyStatus.textContent = "Clipboard unavailable";
         }
       });
-      actions.append(pin, download, copy, copyStatus);
+      const investigate = document.createElement("button");
+      investigate.type = "button";
+      investigate.className = "event-investigate";
+      investigate.textContent = "Investigate around this event";
+      investigate.addEventListener("click", () => {
+        clearEventFilters();
+        investigation = { event, key, time: Date.parse(event.time), previousOrder: byId("event-order").value };
+        byId("event-order").value = "oldest";
+        resetEventRows();
+        byId("investigation-radius").focus();
+      });
+      actions.append(investigate, pin, download, copy, copyStatus);
       item.append(eventNavigation(index), actions, json);
     }
     return item;
@@ -715,12 +745,14 @@ for (const id of ["event-query", "event-site", "event-category"]) {
   byId(id).addEventListener("input", resetEventRows);
 }
 byId("event-range").addEventListener("input", () => {
+  endInvestigation();
   selectedWindow = null;
   updateChartSelection();
   resetEventRows();
 });
 for (const button of document.querySelectorAll("[data-range]")) {
   button.addEventListener("click", () => {
+    endInvestigation();
     byId("event-range").value = button.dataset.range;
     selectedWindow = null;
     updateChartSelection();
@@ -735,7 +767,13 @@ for (const button of document.querySelectorAll("[data-severity]")) {
     resetEventRows();
   });
 }
+function endInvestigation() {
+  if (investigation) byId("event-order").value = investigation.previousOrder;
+  investigation = null;
+}
+
 function clearEventFilters() {
+  endInvestigation();
   for (const id of ["event-query", "event-site", "event-category", "event-range"]) byId(id).value = "";
   severities.clear();
   hidePageLoads = false;
@@ -750,6 +788,16 @@ byId("clear-filters").addEventListener("click", () => {
 });
 byId("reset-empty-results").addEventListener("click", () => {
   clearEventFilters();
+  resetEventRows();
+  byId("event-query").focus();
+});
+byId("investigation-radius").addEventListener("change", () => {
+  selectedWindow = null;
+  resetEventRows();
+});
+byId("close-investigation").addEventListener("click", () => {
+  endInvestigation();
+  selectedWindow = null;
   resetEventRows();
   byId("event-query").focus();
 });
