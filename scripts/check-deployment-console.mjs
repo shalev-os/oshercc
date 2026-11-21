@@ -206,6 +206,9 @@ if (live) {
   const manualCard = document.querySelector('[data-deploy-target="console.example"]').closest(".card");
   assert.match(manualCard.querySelector(".build-window").textContent, /Deployment schedule/);
   assert.match(manualCard.querySelector(".build-window-note").textContent, /simulated deployment/);
+  assert.equal(manualCard.querySelector(".timer-state").textContent, "No timer");
+  assert.equal(manualCard.querySelector(".build-countdown").textContent, "On demand");
+  assert.equal(manualCard.querySelector(".last-timer").parentElement.hidden, true);
   const demoActions = [...document.querySelectorAll(".workflow")];
   assert.equal(demoActions.length, 3);
   assert.equal(demoActions[1].href, "https://github.com/shalev-os/mazonhaosher/actions");
@@ -231,6 +234,13 @@ if (live) {
   assert.equal(byId("export-csv").disabled, false);
   byId("clear-filters").click();
   scenario("integrity");
+  assert.equal(byId("soc-ssh").textContent, "3");
+  assert.equal(byId("soc-integrity").textContent, "1");
+  assert.match(byId("soc-alerts").textContent, /3 distinct SSH sources/);
+  document.querySelector('[data-soc-view="SOC"]').click();
+  assert.equal(byId("event-category").value, "SOC");
+  assert.equal(events().length, 1);
+  byId("clear-filters").click();
   assert.match(byId("attention-items").textContent, /File integrity changes detected/);
   assert.equal(byId("integrity-status").textContent, "Changes detected");
 }
