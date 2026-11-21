@@ -87,7 +87,7 @@ export default function SelectedWork() {
             <div className="selected-work__console-log"><strong>INFO</strong><span>Authenticated Actions signal received</span></div>
           </div>
           <div className="selected-work__feature-copy">
-            <p className="selected-work__label selected-work__kind">Infrastructure · Observability</p>
+            <p className="selected-work__label selected-work__kind">03 <span aria-hidden="true">/</span> Infrastructure · Observability</p>
             <h3>Deployment Console</h3>
             <p className="selected-work__description">A private dashboard for Linux deployments, with release health, a 24-hour activity view, searchable event logs with a built-in JSON inspector, and file integrity checks. The interactive demo lets you follow a release, see a rollback, and inspect an integrity alert using sample data.</p>
             <ul className="selected-work__stack" aria-label="Deployment Console technologies">
