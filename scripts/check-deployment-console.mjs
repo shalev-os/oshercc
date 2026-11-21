@@ -21,6 +21,7 @@ const site = {
   domain: "osher.cc", name: "Test site", mark: "TS", online: true, timer: true,
   repo: "shalev-os/oshercc", release: "0123456789abcdef0123456789abcdef01234567",
   published: time, signal: time, lastCheck: time,
+  lastTimer: time, nextBuild: new Date(Date.now() + 180000).toISOString(),
 };
 const event = {
   site: "server", component: "AIDE", time, level: "success",
@@ -28,7 +29,7 @@ const event = {
 };
 const snapshot = {
   sites: [site],
-  security: { auditActive: true, integrity: "clean", integrityTimer: true, nextScan: time, lastScan: time },
+  security: { auditActive: true, audit: {watches: 8, lost: 0}, fail2ban: true, ssh: {banned: 1, failed: 8}, integrity: "clean", integrityTimer: true, nextScan: time, lastScan: time },
   events: { entries: [event], updated: time },
   host: {
     uptime: 90000, load: [.42, .28, .15], cores: 2,
@@ -59,7 +60,7 @@ try {
   speed.value = "1200";
   speed.dispatchEvent(new dom.window.Event("change"));
   await new Promise(setImmediate);
-  assert.deepEqual(scheduled, [10000, 1200000]);
+  assert.deepEqual(scheduled, [1000, 10000, 1200000]);
   assert.equal(window.localStorage.getItem("osher-console-refresh"), "1200");
 } finally {
   globalThis.setInterval = setInterval;
@@ -72,6 +73,11 @@ assert.equal(byId("activity-chart").children.length, 6);
 assert.doesNotMatch(html, />\s*Checking\s*</i);
 assert.equal(byId("audit-status").hidden, false);
 assert.equal(byId("integrity-status").hidden, false);
+assert.match(document.querySelector(".build-countdown").textContent, /^\d+m \d{2}s$/);
+assert.equal(document.querySelector(".timer-state").textContent, "Timer running");
+assert.ok(document.querySelector(".next-build").dateTime);
+assert.equal(byId("audit-watches").textContent, "8");
+assert.equal(byId("ssh-blocked").textContent, "1");
 
 if (live) {
   assert.equal(requests, 2);
@@ -93,9 +99,10 @@ if (live) {
   byId("activity-chart").children[0].click();
   assert.equal(events().length, 0);
   byId("clear-filters").click();
-  assert.equal(events().length, 7);
+  assert.equal(events().length, 9);
   scenario("deploying");
   assert.equal(byId("building").textContent, "1");
+  assert.equal(document.querySelector(".build-state").textContent, "Building now");
   assert.equal(byId("host-load").textContent, "1.18");
   scenario("rollback");
   document.querySelector('[data-severity="error"]').click();
@@ -105,6 +112,9 @@ if (live) {
   const matching = JSON.parse(byId("event-json").textContent);
   assert.equal(matching.length, 1);
   assert.match(matching[0].message, /Previous release restored/);
+  events()[0].querySelector(".event-inspect").click();
+  assert.deepEqual(JSON.parse(events()[0].querySelector(".event-json").textContent), matching[0]);
+  assert.equal(byId("export-csv").disabled, false);
   byId("clear-filters").click();
   scenario("integrity");
   assert.equal(byId("integrity-status").textContent, "Changes detected");

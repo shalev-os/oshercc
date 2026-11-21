@@ -16,8 +16,10 @@ let visibleCount = pageSize;
 let eventEntries = [];
 let matchingEvents = [];
 let sampledTime = Date.now();
+let clockOffset = 0;
 let severity = "";
 let selectedWindow = null;
+let inspectedEvent = null;
 
 function renderSite(site) {
   const card = byId("site-card").content.cloneNode(true);
@@ -44,13 +46,41 @@ function renderSite(site) {
   select(".published").textContent = timestamp(site.published);
   select(".signal").textContent = timestamp(site.signal);
   select(".last-check").textContent = timestamp(site.lastCheck);
-  select(".timer").textContent = site.timer ? "Active" : "Inactive";
+  const schedule = select(".build-window");
+  const timerState = select(".timer-state");
+  timerState.textContent = site.timer ? "Timer running" : "Timer inactive";
+  timerState.dataset.running = String(site.timer);
+  const nextBuild = select(".next-build");
+  if (site.timer && site.nextBuild) {
+    schedule.dataset.next = site.nextBuild;
+    schedule.dataset.last = site.lastTimer || "";
+    nextBuild.dateTime = site.nextBuild;
+    nextBuild.textContent = logTime.format(new Date(site.nextBuild));
+  }
+  select(".build-countdown").textContent = site.timer ? "Awaiting schedule" : "Paused";
+  select(".last-timer").textContent = timestamp(site.lastTimer);
+  select(".build-state").textContent = site.building ? "Building now" : site.deploying ? "Deploying" : "Idle";
   if (site.repo) {
     select(".workflow").href = "https://github.com/" + site.repo + "/actions";
   } else {
     select(".workflow").remove();
   }
   return card;
+}
+
+function updateBuildCountdowns() {
+  const now = Date.now() + clockOffset;
+  for (const schedule of document.querySelectorAll(".build-window[data-next]")) {
+    const next = Date.parse(schedule.dataset.next);
+    const last = Date.parse(schedule.dataset.last);
+    const seconds = Math.max(0, Math.ceil((next - now) / 1000));
+    const minutes = Math.floor(seconds / 60);
+    schedule.querySelector(".build-countdown").textContent =
+      seconds > 0 ? `${minutes}m ${String(seconds % 60).padStart(2, "0")}s` : "Check due";
+    const meter = schedule.querySelector(".build-progress");
+    meter.hidden = !(last < next);
+    if (!meter.hidden) meter.value = Math.max(0, Math.min(100, 100 * (now - last) / (next - last)));
+  }
 }
 
 function windowBounds(index) {
@@ -106,6 +136,25 @@ function filteredJson() {
   return JSON.stringify(matchingEvents, null, 2);
 }
 
+function filteredCsv() {
+  const fields = ["time", "site", "component", "level", "message"];
+  const quote = (value) => {
+    const text = String(value ?? "");
+    const safe = /^[=+@\-\r\n\t]/.test(text) ? "'" + text : text;
+    return '"' + safe.replaceAll('"', '""') + '"';
+  };
+  return "\uFEFF" + [fields.join(","), ...matchingEvents.map(event => fields.map(field => quote(event[field])).join(","))].join("\r\n");
+}
+
+function downloadEvents(content, type, filename) {
+  const url = URL.createObjectURL(new Blob([content], { type }));
+  const download = document.createElement("a");
+  download.href = url;
+  download.download = filename;
+  download.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
 function resetEventRows() {
   visibleCount = pageSize;
   renderEvents();
@@ -135,8 +184,11 @@ function renderEvents() {
     : "No matching events";
   byId("show-more").hidden = rows.length >= matchingEvents.length;
   byId("export-events").disabled = !matchingEvents.length;
+  byId("export-csv").disabled = !matchingEvents.length;
   if (byId("json-panel").open) byId("event-json").textContent = filteredJson();
-  byId("events").replaceChildren(...rows.map((event) => {
+  const list = byId("events");
+  const focused = list.contains(document.activeElement) ? document.activeElement.dataset.event : undefined;
+  list.replaceChildren(...rows.map((event) => {
     const item = document.createElement("li");
     const badge = document.createElement("span");
     badge.className = "event-level";
@@ -146,13 +198,33 @@ function renderEvents() {
     detail.className = "event-detail";
     const source = document.createElement("small");
     source.textContent = event.site + " · " + event.component;
-    detail.append(event.message, source);
+    const key = JSON.stringify(event);
+    const inspect = document.createElement("button");
+    inspect.type = "button";
+    inspect.className = "event-inspect";
+    inspect.dataset.event = key;
+    inspect.textContent = event.message;
+    inspect.setAttribute("aria-expanded", String(inspectedEvent === key));
+    inspect.addEventListener("click", () => {
+      inspectedEvent = inspectedEvent === key ? null : key;
+      renderEvents();
+    });
+    detail.append(inspect, source);
     const time = document.createElement("time");
     time.dateTime = event.time;
     time.textContent = logTime.format(new Date(event.time));
     item.append(badge, detail, time);
+    if (inspectedEvent === key) {
+      const json = document.createElement("pre");
+      json.className = "event-json";
+      json.tabIndex = 0;
+      json.setAttribute("aria-label", "Event JSON");
+      json.textContent = JSON.stringify(event, null, 2);
+      item.append(json);
+    }
     return item;
   }));
+  if (focused) [...list.querySelectorAll(".event-inspect")].find(button => button.dataset.event === focused)?.focus();
 }
 
 function formatBytes(bytes) {
@@ -188,6 +260,14 @@ export function renderStatus(data) {
   audit.textContent = security.auditActive ? "Active" : "Inactive";
   audit.dataset.tone = security.auditActive ? "ok" : "error";
   audit.hidden = false;
+  byId("audit-watches").textContent = security.audit?.watches ?? "—";
+  byId("audit-lost").textContent = security.audit?.lost ?? "—";
+  const ssh = byId("ssh-status");
+  ssh.textContent = security.fail2ban ? "Active" : "Inactive";
+  ssh.dataset.tone = security.fail2ban ? "ok" : "error";
+  ssh.hidden = false;
+  byId("ssh-blocked").textContent = security.ssh?.banned ?? "—";
+  byId("ssh-failures").textContent = security.ssh?.failed ?? "—";
   const [label, tone] = {
     clean: ["Baseline matches", "ok"],
     changes: ["Changes detected", "warn"],
@@ -209,11 +289,13 @@ export function renderStatus(data) {
   }
   eventEntries = data.events.entries;
   sampledTime = Date.parse(data.sampled);
+  clockOffset = sampledTime - Date.now();
   byId("event-update").textContent = data.events.updated
     ? "Collected " + timestamp(data.events.updated)
     : "Log snapshot unavailable";
   renderChart();
   renderEvents();
+  updateBuildCountdowns();
 }
 
 async function refresh() {
@@ -260,13 +342,10 @@ byId("show-more").addEventListener("click", () => {
   renderEvents();
 });
 byId("export-events").addEventListener("click", () => {
-  const blob = new Blob([filteredJson()], { type: "application/json" });
-  const url = URL.createObjectURL(blob);
-  const download = document.createElement("a");
-  download.href = url;
-  download.download = "deployment-events.json";
-  download.click();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  downloadEvents(filteredJson(), "application/json", "deployment-events.json");
+});
+byId("export-csv").addEventListener("click", () => {
+  downloadEvents(filteredCsv(), "text/csv;charset=utf-8", "deployment-events.csv");
 });
 byId("json-panel").addEventListener("toggle", () => {
   if (byId("json-panel").open) byId("event-json").textContent = filteredJson();
@@ -307,6 +386,7 @@ export function startRefresh(update) {
   });
   button.hidden = false;
   button.addEventListener("click", update);
+  setInterval(updateBuildCountdowns, 1000);
   schedule();
   update();
 }

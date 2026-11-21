@@ -62,10 +62,22 @@
     </section>
     <section aria-labelledby="security-heading">
       <div class="section-heading"><h2 id="security-heading">Server security</h2></div>
-      <div class="sites">
+      <div class="security-grid">
         <article class="card security-card">
           <div class="card-top"><h3>System audit</h3><span id="audit-status" class="badge" hidden></span></div>
           <p>Auditd records changes to SSH, Nginx, Cloudflare Tunnel, deployment services, and privilege settings.</p>
+          <dl>
+            <div><dt>Watched paths</dt><dd id="audit-watches">—</dd></div>
+            <div><dt>Lost events</dt><dd id="audit-lost">—</dd></div>
+          </dl>
+        </article>
+        <article class="card security-card">
+          <div class="card-top"><h3>SSH protection</h3><span id="ssh-status" class="badge" hidden></span></div>
+          <p>Fail2ban blocks repeated SSH authentication failures.</p>
+          <dl>
+            <div><dt>Active blocks</dt><dd id="ssh-blocked">—</dd></div>
+            <div><dt>Failures since startup</dt><dd id="ssh-failures">—</dd></div>
+          </dl>
         </article>
         <article class="card security-card">
           <div class="card-top"><h3>File integrity</h3><span id="integrity-status" class="badge" hidden></span></div>
@@ -87,7 +99,7 @@
       </div>
     </section>
     <section class="activity" aria-labelledby="activity-heading">
-      <div class="section-heading"><h2 id="activity-heading">Event log</h2><div class="event-heading-actions"><p id="event-update"></p><button type="button" id="export-events" disabled>Export JSON</button></div></div>
+      <div class="section-heading"><h2 id="activity-heading">Event log</h2><div class="event-heading-actions"><p id="event-update"></p><button type="button" id="export-events" disabled>Export JSON</button><button type="button" id="export-csv" disabled>Export CSV</button></div></div>
       <div class="log-panel">
         <div class="log-overview">
           <div class="log-overview-heading">
@@ -122,12 +134,19 @@
     <article class="card">
       <div class="card-top"><span class="site-mark" aria-hidden="true"></span><span class="badge"></span></div>
       <h3></h3><a class="site-url" target="_blank" rel="noopener"></a>
+      <div class="build-window">
+        <div class="build-window-head"><span>Next build time</span><span class="timer-state"></span></div>
+        <div class="build-window-time"><strong class="build-countdown"></strong><time class="next-build"></time></div>
+        <meter class="build-progress" aria-label="Elapsed time between fallback checks" min="0" max="100" value="0" hidden></meter>
+        <p class="build-window-note">The fallback timer checks for a validated release.</p>
+      </div>
       <dl>
         <div><dt>Release</dt><dd class="release"></dd></div>
         <div><dt>Published</dt><dd class="published"></dd></div>
         <div><dt>Actions signal</dt><dd class="signal"></dd></div>
         <div><dt>Last deployment check</dt><dd class="last-check"></dd></div>
-        <div><dt>Fallback timer</dt><dd class="timer"></dd></div>
+        <div><dt>Last timer trigger</dt><dd class="last-timer"></dd></div>
+        <div><dt>Build process</dt><dd class="build-state"></dd></div>
       </dl>
       <a class="workflow" target="_blank" rel="noopener">GitHub Actions</a>
     </article>
