@@ -95,7 +95,7 @@ export default function SelectedWork() {
             </ul>
             <div className="selected-work__links">
               <a href="/deployment-console/">Interactive demo</a>
-              <a href="https://github.com/shalev-os/oshercc/tree/main/public/deployment-console" target="_blank" rel="noopener noreferrer">GitHub source <ArrowUpRight size={16} aria-hidden="true" /></a>
+              <a href="https://github.com/shalev-os/oshercc/tree/main/deployment-console" target="_blank" rel="noopener noreferrer">GitHub source <ArrowUpRight size={16} aria-hidden="true" /></a>
             </div>
           </div>
         </article>

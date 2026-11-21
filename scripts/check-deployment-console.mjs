@@ -3,7 +3,7 @@ import { readFile } from "node:fs/promises";
 import { JSDOM } from "jsdom";
 
 const live = process.argv.includes("--live");
-const root = new URL("../public/deployment-console/", import.meta.url);
+const root = new URL("../deployment-console/", import.meta.url);
 const html = await readFile(new URL("index.html", root), "utf8");
 const dom = new JSDOM(html, {
   url: live ? "https://deploy.osher.cc/" : "https://osher.cc/deployment-console/",
@@ -45,7 +45,8 @@ globalThis.fetch = async (url) => {
 const setInterval = globalThis.setInterval;
 globalThis.setInterval = () => 0;
 try {
-  await import(new URL("entry.js", root));
+  const { ready } = await import(new URL("entry.js", root));
+  await ready;
   await new Promise(setImmediate);
 } finally {
   globalThis.setInterval = setInterval;
@@ -55,6 +56,9 @@ assert.equal(document.querySelector(".demo-controls").hidden, live);
 assert.equal(byId("portfolio-link").hidden, live);
 assert.equal(byId("refresh").hidden, !live);
 assert.equal(byId("activity-chart").children.length, 6);
+assert.doesNotMatch(html, />\s*Checking\s*</i);
+assert.equal(byId("audit-status").hidden, false);
+assert.equal(byId("integrity-status").hidden, false);
 
 if (live) {
   assert.equal(requests, 1);
@@ -70,6 +74,8 @@ if (live) {
   assert.deepEqual(JSON.parse(byId("event-json").textContent), [event]);
 } else {
   assert.equal(requests, 0);
+  assert.equal(byId("audit-status").textContent, "Active");
+  assert.equal(byId("integrity-status").textContent, "Baseline matches");
   assert.equal(byId("live").textContent, "2/2");
   byId("activity-chart").children[0].click();
   assert.equal(events().length, 0);
