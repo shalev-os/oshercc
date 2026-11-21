@@ -142,7 +142,7 @@ function renderChart() {
     return button;
   }));
   updateChartSelection();
-  if (activeIndex !== undefined) chart.querySelectorAll("button")[Number(activeIndex)]?.focus();
+  if (activeIndex !== undefined) chart.querySelectorAll("button")[Number(activeIndex)]?.focus({ preventScroll: true });
 }
 
 function filteredJson() {
@@ -260,7 +260,7 @@ function renderEvents() {
     }
     return item;
   }));
-  if (focused) [...list.querySelectorAll(".event-inspect")].find(button => button.dataset.event === focused)?.focus();
+  if (focused) [...list.querySelectorAll(".event-inspect")].find(button => button.dataset.event === focused)?.focus({ preventScroll: true });
 }
 
 function formatBytes(bytes) {
