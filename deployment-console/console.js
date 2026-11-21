@@ -24,6 +24,39 @@ const hostErrors = "Host errors";
 let selectedWindow = null;
 let inspectedEvent = null;
 let chartWindows = [];
+let liveMode = false;
+const manualDeployments = new Map();
+
+function updateDeployControl(control) {
+  const request = manualDeployments.get(control.dataset.domain);
+  control.querySelector("button").disabled = Boolean(request?.pending || control.dataset.busy === "true");
+  control.querySelector("[role=status]").textContent = request?.message || "";
+}
+
+async function deploySite(site, control) {
+  if (manualDeployments.get(site.domain)?.pending) return;
+  const request = { pending: true, message: "Requesting deployment…" };
+  manualDeployments.set(site.domain, request);
+  updateDeployControl(control);
+  try {
+    const response = await fetch(`api/deploy/${encodeURIComponent(site.domain)}`, {
+      method: "POST",
+      headers: { "X-Osher-Deploy": "1" },
+      redirect: "error",
+      signal: AbortSignal.timeout(8000),
+    });
+    if (response.status !== 202) throw new Error("Deployment request failed");
+    request.message = "Deployment check queued.";
+  } catch {
+    request.message = "Could not confirm the deployment request.";
+  } finally {
+    request.pending = false;
+    const current = [...document.querySelectorAll(".manual-deployment")]
+      .find(element => element.dataset.domain === site.domain);
+    if (current) updateDeployControl(current);
+    refresh();
+  }
+}
 
 function renderSite(site) {
   const card = byId("site-card").content.cloneNode(true);
@@ -71,6 +104,16 @@ function renderSite(site) {
     select(".workflow").href = "https://github.com/" + site.repo + "/actions";
   } else {
     select(".workflow").remove();
+  }
+  if (liveMode && !site.sharedTimer) {
+    const control = select(".manual-deployment");
+    control.hidden = false;
+    control.dataset.domain = site.domain;
+    control.dataset.busy = String(Boolean(site.deploying || site.building));
+    const button = control.querySelector("button");
+    button.setAttribute("aria-label", `Deploy ${site.domain} now`);
+    button.addEventListener("click", () => deploySite(site, control));
+    updateDeployControl(control);
   }
   return card;
 }
@@ -589,6 +632,7 @@ function startEventStream() {
 }
 
 export function startLive() {
+  liveMode = true;
   byId("live-controls").hidden = false;
   byId("host-activity").hidden = false;
   const views = {
