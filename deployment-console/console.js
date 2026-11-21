@@ -60,6 +60,9 @@ function renderSite(site) {
   select(".build-countdown").textContent = site.timer ? "Awaiting schedule" : "Paused";
   select(".last-timer").textContent = timestamp(site.lastTimer);
   select(".build-state").textContent = site.building ? "Building now" : site.deploying ? "Deploying" : "Idle";
+  if (site.sharedTimer) {
+    select(".build-window-note").textContent = "Shared release schedule with the portfolio.";
+  }
   if (site.repo) {
     select(".workflow").href = "https://github.com/" + site.repo + "/actions";
   } else {
@@ -137,13 +140,28 @@ function filteredJson() {
 }
 
 function filteredCsv() {
-  const fields = ["time", "site", "component", "level", "message"];
+  const fields = ["time", "site", "component", "level", "message", "details"];
   const quote = (value) => {
-    const text = String(value ?? "");
+    const text = value && typeof value === "object" ? JSON.stringify(value) : String(value ?? "");
     const safe = /^[=+@\-\r\n\t]/.test(text) ? "'" + text : text;
     return '"' + safe.replaceAll('"', '""') + '"';
   };
   return "\uFEFF" + [fields.join(","), ...matchingEvents.map(event => fields.map(field => quote(event[field])).join(","))].join("\r\n");
+}
+
+function eventContext(event) {
+  const context = document.createElement("dl");
+  context.className = "event-context";
+  for (const [key, value] of Object.entries(event.details || {}).slice(0, 3)) {
+    const group = document.createElement("div");
+    const title = document.createElement("dt");
+    title.textContent = key.replace(/([a-z])([A-Z])/g, "$1 $2");
+    const description = document.createElement("dd");
+    description.textContent = key === "commit" ? value.slice(0, 12) : String(value);
+    group.append(title, description);
+    context.append(group);
+  }
+  return context;
 }
 
 function downloadEvents(content, type, filename) {
@@ -210,6 +228,7 @@ function renderEvents() {
       renderEvents();
     });
     detail.append(inspect, source);
+    if (event.details) detail.append(eventContext(event));
     const time = document.createElement("time");
     time.dateTime = event.time;
     time.textContent = logTime.format(new Date(event.time));
@@ -251,9 +270,10 @@ function renderHost(host) {
 
 export function renderStatus(data) {
   const { sites, security } = data;
+  const independentSites = sites.filter(site => !site.sharedTimer);
   byId("live").textContent = sites.filter((site) => site.online).length + "/" + sites.length;
-  byId("building").textContent = sites.filter((site) => site.deploying).length;
-  byId("fallback").textContent = sites.filter((site) => site.timer).length + "/" + sites.length;
+  byId("building").textContent = independentSites.filter((site) => site.deploying).length;
+  byId("fallback").textContent = independentSites.filter((site) => site.timer).length + "/" + independentSites.length;
   byId("sites").replaceChildren(...sites.map(renderSite));
   byId("sample").textContent = "Updated " + timestamp(data.sampled);
   const audit = byId("audit-status");
@@ -282,7 +302,7 @@ export function renderStatus(data) {
   byId("next-scan").textContent = security.integrityTimer ? timestamp(security.nextScan) : "Timer inactive";
   renderHost(data.host);
   const sourceSelect = byId("event-site");
-  for (const site of sites) {
+  for (const site of independentSites) {
     if (![...sourceSelect.options].some((option) => option.value === site.domain)) {
       sourceSelect.add(new Option(site.domain, site.domain));
     }

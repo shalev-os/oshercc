@@ -12,8 +12,8 @@ const site = (domain, name, mark, release, minutes) => ({
   domain, name, mark, release, published: time(minutes), lastCheck: time(-2),
   signal: time(minutes - 1), online: true, deploying: false, failed: false, timer: true,
 });
-const event = (minutes, source, component, level, message) => ({
-  time: time(minutes), site: source, component, level, message,
+const event = (minutes, source, component, level, message, details) => ({
+  time: time(minutes), site: source, component, level, message, details,
 });
 const portfolio = "portfolio.example";
 const catalog = "catalog.example";
@@ -41,33 +41,34 @@ function scenarioData(mode) {
     disk: { used: 4200 * mib, total: 8192 * mib },
   };
   const entries = [
-    event(-36, portfolio, "Deploy", "success", "Release 73da621 is serving traffic"),
-    event(-36, portfolio, "Build", "success", "Built in 8.4s"),
-    event(-37, portfolio, "Deploy", "info", "Deploy started"),
-    event(-37, portfolio, "GitHub Actions", "info", "Authenticated signal received"),
-    event(-82, catalog, "Deploy", "success", "Release 84be103 is serving traffic"),
-    event(-83, catalog, "Build", "success", "Built in 11.2s"),
-    event(-105, "server", "Fail2ban", "warning", "Fail2ban blocked an SSH source."),
-    event(-140, "server", "Auditd", "info", "Web server configuration changed"),
-    event(-210, "server", "AIDE", "success", "Protected files match the integrity baseline"),
+    event(-36, portfolio, "Deploy", "success", "Release 73da621 is serving traffic", { commit: "73da621", outcome: "published", healthCheck: "passed" }),
+    event(-36, portfolio, "Build", "success", "Vite build completed", { tool: "Vite", durationSeconds: 8.4, outcome: "built" }),
+    event(-37, portfolio, "Deploy", "info", "Deploy started", { phase: "started", trigger: "GitHub Actions" }),
+    event(-37, portfolio, "GitHub Actions", "info", "Authenticated signal received", { trigger: "GitHub Actions", phase: "accepted" }),
+    event(-82, catalog, "Deploy", "success", "Release 84be103 is serving traffic", { commit: "84be103", outcome: "published", healthCheck: "passed" }),
+    event(-83, catalog, "Build", "success", "Vite build completed", { tool: "Vite", durationSeconds: 11.2, outcome: "built" }),
+    event(-105, "server", "Fail2ban", "warning", "Fail2ban blocked an SSH source.", { jail: "sshd", action: "blocked", sourceIp: "198.51.100.24" }),
+    event(-140, "server", "Auditd", "info", "Web server configuration changed", { auditEventId: "1024", rule: "demo_web_config", result: "success" }),
+    event(-210, "server", "AIDE", "success", "Protected files match the integrity baseline", { baseline: "matched", outcome: "verified" }),
   ];
   if (mode === "deploying") {
     Object.assign(sites[0], { deploying: true, building: true, lastCheck: time(-1), signal: time(-1) });
     host.load[0] = 1.18;
     host.memory.used = 691 * mib;
-    entries.unshift(event(-1, portfolio, "Build", "info", "Building validated commit 3a91fc8"));
+    entries.unshift(event(-1, portfolio, "Build", "info", "Building validated commit 3a91fc8", { commit: "3a91fc8", ciStatus: "success", phase: "building" }));
   }
   if (mode === "rollback") {
     Object.assign(sites[1], { failed: true, lastCheck: time(-1), signal: time(-2) });
     entries.unshift(
-      event(-1, catalog, "Deploy", "error", "Health check failed. Previous release restored."),
-      event(-2, catalog, "GitHub Actions", "info", "Authenticated signal received"),
+      event(-1, catalog, "Deploy", "error", "Health check failed. Previous release restored.", { healthCheck: "failed", rollback: "restored" }),
+      event(-2, catalog, "GitHub Actions", "info", "Authenticated signal received", { trigger: "GitHub Actions", phase: "accepted" }),
     );
   }
   if (mode === "integrity") {
     Object.assign(security, { integrity: "changes", lastScan: time(-1) });
-    entries.unshift(event(-1, "server", "AIDE", "warning", "Integrity baseline differences detected"));
+    entries.unshift(event(-1, "server", "AIDE", "warning", "Integrity baseline differences detected", { baseline: "changed", entries: 2 }));
   }
+  sites.push({ ...sites[0], domain: "console.example", name: "Deployment Console", mark: "DC", sharedTimer: true });
   return { sampled: time(0), sites, security, host, events: { entries, updated: time(0) } };
 }
 
