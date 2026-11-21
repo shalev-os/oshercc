@@ -142,3 +142,7 @@ meter::-moz-meter-bar{background:var(--gold)}
 .traffic-table thead{color:var(--muted)}
 .traffic-table tbody tr{border-top:1px solid var(--line)}
 .traffic-table tbody td{font-variant-numeric:tabular-nums;white-space:nowrap}
+
+.host-activity-grid button{text-align:left;display:grid;gap:.35rem}
+.host-activity-grid button:hover,.host-activity-grid button:focus-visible{border-color:var(--gold)}
+.host-activity-grid span{color:var(--muted);font-size:.875rem}
