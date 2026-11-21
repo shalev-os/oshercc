@@ -173,3 +173,19 @@ meter::-moz-meter-bar{background:var(--accent)}
 .host-activity-grid button{text-align:left;display:grid;gap:.35rem}
 .host-activity-grid button:hover,.host-activity-grid button:focus-visible{border-color:var(--accent)}
 .host-activity-grid span{color:var(--muted);font-size:.875rem}
+
+.console-footer{border-top:1px solid var(--line)}
+.console-footer-inner{
+  display:flex;
+  align-items:center;
+  flex-wrap:wrap;
+  gap:.75rem 1rem;
+  width:min(1160px,calc(100% - 2rem));
+  margin-inline:auto;
+  padding-block:1.5rem;
+  color:var(--muted);
+  font-size:.875rem;
+}
+.console-footer nav{display:flex;flex-wrap:wrap;gap:.5rem 1rem;margin-inline-start:auto}
+.console-footer nav a{text-underline-offset:.2em}
+@media(max-width:650px){.console-footer nav{flex-basis:100%;margin-inline-start:0}}
