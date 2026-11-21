@@ -12,6 +12,15 @@ globalThis.document = dom.window.document;
 globalThis.location = dom.window.location;
 globalThis.Option = dom.window.Option;
 globalThis.window = dom.window;
+let socket;
+window.WebSocket = class extends window.EventTarget {
+  constructor(url) {
+    super();
+    assert.equal(live, true, "The public demo must not open a production WebSocket");
+    assert.equal(String(url), "wss://deploy.osher.cc/api/events");
+    socket = this;
+  }
+};
 let copiedText = "";
 Object.defineProperty(dom.window.navigator, "clipboard", {
   value: { writeText: async (value) => { copiedText = value; } },
@@ -111,6 +120,27 @@ if (live) {
   assert.equal(events().length, 0);
   document.querySelector('[data-live-view="overview"]').click();
   assert.equal(events().length, 1);
+  socket.dispatchEvent(new window.Event("open"));
+  const push = new window.MessageEvent("message", {
+    data: JSON.stringify({
+      updated: new Date(Date.parse(time) + 1000).toISOString(),
+      entries: [{ ...event, message: "Release event delivered by WebSocket" }],
+    }),
+  });
+  socket.dispatchEvent(push);
+  assert.equal(byId("event-stream").textContent, "Log updates paused");
+  assert.match(events()[0].textContent, /Protected files match/);
+  byId("refresh-rate").value = "10";
+  const realSetInterval = globalThis.setInterval;
+  globalThis.setInterval = () => 0;
+  try {
+    byId("refresh-rate").dispatchEvent(new window.Event("change"));
+  } finally {
+    globalThis.setInterval = realSetInterval;
+  }
+  await new Promise(setImmediate);
+  assert.equal(byId("event-stream").textContent, "Live stream");
+  assert.match(events()[0].textContent, /Release event delivered by WebSocket/);
 } else {
   assert.equal(requests, 0);
   assert.equal(byId("audit-status").textContent, "Active");

@@ -14,6 +14,7 @@ const refreshPreference = "osher-console-refresh";
 const pageSize = 12;
 let visibleCount = pageSize;
 let eventEntries = [];
+let eventsUpdated = null;
 let matchingEvents = [];
 let sampledTime = Date.now();
 let clockOffset = 0;
@@ -404,21 +405,31 @@ export function renderStatus(data) {
       sourceSelect.add(new Option(site.domain, site.domain));
     }
   }
-  eventEntries = data.events.entries;
+  sampledTime = Date.parse(data.sampled);
+  clockOffset = sampledTime - Date.now();
+  renderEventSnapshot(data.events);
+  updateBuildCountdowns();
+}
+
+function renderEventSnapshot(events) {
+  if (eventsUpdated && (!events.updated || Date.parse(events.updated) < Date.parse(eventsUpdated))) {
+    renderEvents();
+    return;
+  }
+  sampledTime = Math.max(sampledTime, Date.parse(events.updated) || 0);
+  eventEntries = events.entries;
+  eventsUpdated = events.updated;
   const categorySelect = byId("event-category");
   for (const category of [...new Set(eventEntries.map(event => event.component))].sort()) {
     if (![...categorySelect.options].some(option => option.value === category)) {
       categorySelect.add(new Option(category, category));
     }
   }
-  sampledTime = Date.parse(data.sampled);
-  clockOffset = sampledTime - Date.now();
-  renderTraffic(eventEntries, sampledTime, data.events.updated);
-  byId("event-update").textContent = data.events.updated
-    ? "Collected " + timestamp(data.events.updated)
+  renderTraffic(eventEntries, sampledTime, eventsUpdated);
+  byId("event-update").textContent = eventsUpdated
+    ? "Collected " + timestamp(eventsUpdated)
     : "Log snapshot unavailable";
   renderEvents();
-  updateBuildCountdowns();
 }
 
 async function refresh() {
@@ -525,6 +536,48 @@ export function startRefresh(update) {
   update();
 }
 
+function startEventStream() {
+  const status = byId("event-stream");
+  const speed = byId("refresh-rate");
+  if (!window.WebSocket) return;
+  let connected = false;
+  let latest;
+  const showStatus = () => {
+    status.hidden = false;
+    status.textContent = speed.value === "0" ? "Log updates paused" : connected ? "Live stream" : "Polling";
+  };
+  const connect = () => {
+    const url = new URL("/api/events", location.href);
+    url.protocol = "wss:";
+    const socket = new window.WebSocket(url);
+    socket.addEventListener("open", () => {
+      connected = true;
+      showStatus();
+    });
+    socket.addEventListener("message", ({ data }) => {
+      try {
+        const events = JSON.parse(data);
+        if (!Array.isArray(events.entries) || !Number.isFinite(Date.parse(events.updated))) return;
+        latest = events;
+        if (speed.value !== "0") renderEventSnapshot(events);
+      } catch {
+        socket.close();
+      }
+    });
+    socket.addEventListener("close", () => {
+      connected = false;
+      showStatus();
+      setTimeout(connect, 5000);
+    });
+  };
+  speed.addEventListener("change", () => {
+    showStatus();
+    if (speed.value !== "0" && latest) renderEventSnapshot(latest);
+  });
+  showStatus();
+  connect();
+}
+
 export function startLive() {
   byId("live-controls").hidden = false;
   const views = {
@@ -551,4 +604,5 @@ export function startLive() {
     });
   }
   startRefresh(refresh);
+  startEventStream();
 }
