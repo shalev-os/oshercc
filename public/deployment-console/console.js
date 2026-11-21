@@ -186,6 +186,7 @@ export function renderStatus(data) {
   const audit = byId("audit-status");
   audit.textContent = security.auditActive ? "Active" : "Inactive";
   audit.dataset.tone = security.auditActive ? "ok" : "error";
+  audit.hidden = false;
   const [label, tone] = {
     clean: ["Baseline matches", "ok"],
     changes: ["Changes detected", "warn"],
@@ -195,6 +196,7 @@ export function renderStatus(data) {
   }[security.integrity];
   byId("integrity-status").textContent = label;
   byId("integrity-status").dataset.tone = tone;
+  byId("integrity-status").hidden = false;
   byId("last-scan").textContent = timestamp(security.lastScan);
   byId("next-scan").textContent = security.integrityTimer ? timestamp(security.nextScan) : "Timer inactive";
   renderHost(data.host);

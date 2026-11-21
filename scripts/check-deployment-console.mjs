@@ -55,6 +55,9 @@ assert.equal(document.querySelector(".demo-controls").hidden, live);
 assert.equal(byId("portfolio-link").hidden, live);
 assert.equal(byId("refresh").hidden, !live);
 assert.equal(byId("activity-chart").children.length, 6);
+assert.doesNotMatch(html, />\s*Checking\s*</i);
+assert.equal(byId("audit-status").hidden, false);
+assert.equal(byId("integrity-status").hidden, false);
 
 if (live) {
   assert.equal(requests, 1);
@@ -70,6 +73,8 @@ if (live) {
   assert.deepEqual(JSON.parse(byId("event-json").textContent), [event]);
 } else {
   assert.equal(requests, 0);
+  assert.equal(byId("audit-status").textContent, "Active");
+  assert.equal(byId("integrity-status").textContent, "Baseline matches");
   assert.equal(byId("live").textContent, "2/2");
   byId("activity-chart").children[0].click();
   assert.equal(events().length, 0);

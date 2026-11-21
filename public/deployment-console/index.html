@@ -37,18 +37,18 @@
       </div>
     </section>
     <section aria-labelledby="sites-heading">
-      <div class="section-heading"><h2 id="sites-heading">Sites</h2><p id="sample">Waiting for status</p></div>
+      <div class="section-heading"><h2 id="sites-heading">Sites</h2><p id="sample"></p></div>
       <div class="sites" id="sites"></div>
     </section>
     <section aria-labelledby="security-heading">
       <div class="section-heading"><h2 id="security-heading">Server security</h2></div>
       <div class="sites">
         <article class="card security-card">
-          <div class="card-top"><h3>System audit</h3><span id="audit-status" class="badge" data-tone="warn">Checking</span></div>
+          <div class="card-top"><h3>System audit</h3><span id="audit-status" class="badge" hidden></span></div>
           <p>Auditd records changes to SSH, Nginx, Cloudflare Tunnel, deployment services, and privilege settings.</p>
         </article>
         <article class="card security-card">
-          <div class="card-top"><h3>File integrity</h3><span id="integrity-status" class="badge" data-tone="warn">Checking</span></div>
+          <div class="card-top"><h3>File integrity</h3><span id="integrity-status" class="badge" hidden></span></div>
           <p>AIDE compares protected files against the server baseline.</p>
           <dl>
             <div><dt>Last scan</dt><dd id="last-scan">—</dd></div>
