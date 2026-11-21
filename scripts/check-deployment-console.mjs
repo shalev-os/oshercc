@@ -45,7 +45,8 @@ globalThis.fetch = async (url) => {
 const setInterval = globalThis.setInterval;
 globalThis.setInterval = () => 0;
 try {
-  await import(new URL("entry.js", root));
+  const { ready } = await import(new URL("entry.js", root));
+  await ready;
   await new Promise(setImmediate);
 } finally {
   globalThis.setInterval = setInterval;
