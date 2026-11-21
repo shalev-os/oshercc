@@ -53,6 +53,11 @@ async function deploySite(target) {
     });
     if (response.status !== 202) throw new Error("Deployment request failed");
     request.message = "Deployment check queued.";
+    setTimeout(() => {
+      if (manualDeployments.get(target) !== request) return;
+      manualDeployments.delete(target);
+      updateDeployControls(target);
+    }, 4000);
   } catch {
     request.message = "Could not confirm the deployment request.";
   } finally {
