@@ -1,4 +1,4 @@
-import { renderStatus } from "./console.js";
+import { renderStatus, startRefresh } from "./console.js";
 
 const time = (minutes) => new Date(Date.now() + minutes * 60000).toISOString();
 const site = (domain, name, mark, release, minutes) => ({
@@ -60,14 +60,15 @@ function scenarioData(mode) {
 }
 
 const controls = [...document.querySelectorAll("[data-scenario]")];
+let mode = "healthy";
 for (const button of controls) {
   button.addEventListener("click", () => {
     for (const control of controls) {
       control.setAttribute("aria-pressed", String(control === button));
     }
-    const mode = button.dataset.scenario;
+    mode = button.dataset.scenario;
     document.getElementById("scenario-description").textContent = scenarios[mode];
     renderStatus(scenarioData(mode));
   });
 }
-renderStatus(scenarioData("healthy"));
+startRefresh(() => renderStatus(scenarioData(mode)));

@@ -10,6 +10,8 @@ const chartTime = new Intl.DateTimeFormat(undefined, { hour: "numeric", minute: 
 const hour = 3600000;
 const windowSize = 4 * hour;
 const windowCount = 6;
+const refreshIntervals = { fast: 10000, ultra: 5000 };
+const refreshPreference = "osher-console-refresh";
 const pageSize = 12;
 let visibleCount = pageSize;
 let eventEntries = [];
@@ -278,8 +280,36 @@ byId("copy-json").addEventListener("click", async () => {
     byId("copy-status").textContent = "Clipboard unavailable. Select the JSON to copy it.";
   }
 });
+export function startRefresh(update) {
+  const select = byId("refresh-rate");
+  const button = byId("refresh");
+  let timer;
+  try {
+    if (window.localStorage.getItem(refreshPreference) === "ultra") select.value = "ultra";
+  } catch {
+    // The current page still works when browser storage is unavailable.
+  }
+  const schedule = () => {
+    clearInterval(timer);
+    timer = setInterval(() => {
+      if (!document.hidden) update();
+    }, refreshIntervals[select.value]);
+  };
+  select.addEventListener("change", () => {
+    try {
+      window.localStorage.setItem(refreshPreference, select.value);
+    } catch {
+      // Keep the user's selection for this page even without persistent storage.
+    }
+    schedule();
+    update();
+  });
+  button.hidden = false;
+  button.addEventListener("click", update);
+  schedule();
+  update();
+}
+
 export function startLive() {
-  byId("refresh").addEventListener("click", refresh);
-  setInterval(refresh, 15000);
-  refresh();
+  startRefresh(refresh);
 }

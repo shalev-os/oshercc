@@ -11,7 +11,6 @@ byId("console-description").textContent = live
 
 if (live) {
   byId("connection").hidden = false;
-  byId("refresh").hidden = false;
   startLive();
 } else {
   document.title = "Deployment Console Demo · Osher";
