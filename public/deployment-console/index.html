@@ -57,14 +57,32 @@
     <section class="activity" aria-labelledby="activity-heading">
       <div class="section-heading"><h2 id="activity-heading">Event log</h2><div class="event-heading-actions"><p id="event-update"></p><button type="button" id="export-events" disabled>Export JSON</button></div></div>
       <div class="log-panel">
+        <div class="log-overview">
+          <div class="log-overview-heading">
+            <h3>Activity · 24 hours</h3>
+            <button type="button" id="clear-filters">Clear filters</button>
+          </div>
+          <div id="activity-chart" class="activity-chart" aria-label="Events by four-hour period"></div>
+          <div class="severity-summary" aria-label="Filter by event severity">
+            <button type="button" data-severity="info" aria-pressed="false">Info <strong>0</strong></button>
+            <button type="button" data-severity="success" aria-pressed="false">Success <strong>0</strong></button>
+            <button type="button" data-severity="warning" aria-pressed="false">Warning <strong>0</strong></button>
+            <button type="button" data-severity="error" aria-pressed="false">Error <strong>0</strong></button>
+          </div>
+        </div>
         <div class="log-controls">
           <label>Search<input id="event-query" type="search" placeholder="Release, component, or message"></label>
           <label>Source<select id="event-site"><option value="">All sources</option><option value="server">Server</option></select></label>
-          <label>Level<select id="event-level"><option value="">All levels</option><option value="info">Info</option><option value="success">Success</option><option value="warning">Warning</option><option value="error">Error</option></select></label>
+          <label>Time range<select id="event-range"><option value="">All retained events</option><option value="1">Last hour</option><option value="24">Last 24 hours</option><option value="168">Last 7 days</option></select></label>
         </div>
         <p class="log-count" id="event-count" role="status"></p>
         <ol id="events"></ol>
         <button type="button" id="show-more" hidden>Show more</button>
+        <details id="json-panel" class="json-panel">
+          <summary>View filtered JSON</summary>
+          <div class="json-toolbar"><button type="button" id="copy-json">Copy JSON</button><span id="copy-status" role="status"></span></div>
+          <pre id="event-json" tabindex="0" aria-label="Filtered events JSON"></pre>
+        </details>
       </div>
     </section>
   </main>

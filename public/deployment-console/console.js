@@ -6,10 +6,17 @@ const timestamp = (value) => value ? dateFormat.format(new Date(value)) : "—";
 const logTime = new Intl.DateTimeFormat(undefined, {
   month: "short", day: "numeric", hour: "numeric", minute: "2-digit", second: "2-digit",
 });
+const chartTime = new Intl.DateTimeFormat(undefined, { hour: "numeric", minute: "2-digit" });
+const hour = 3600000;
+const windowSize = 4 * hour;
+const windowCount = 6;
 const pageSize = 12;
 let visibleCount = pageSize;
 let eventEntries = [];
 let matchingEvents = [];
+let sampledTime = Date.now();
+let severity = "";
+let selectedWindow = null;
 
 function renderSite(site) {
   const card = byId("site-card").content.cloneNode(true);
@@ -45,20 +52,89 @@ function renderSite(site) {
   return card;
 }
 
+function windowBounds(index) {
+  const start = sampledTime - (windowCount - index) * windowSize;
+  return [start, start + windowSize];
+}
+
+function updateChartSelection() {
+  for (const button of byId("activity-chart").querySelectorAll("button")) {
+    button.setAttribute("aria-pressed", String(Number(button.dataset.index) === selectedWindow));
+  }
+}
+
+function renderChart() {
+  const chart = byId("activity-chart");
+  const activeIndex = chart.contains(document.activeElement) ? document.activeElement.dataset.index : undefined;
+  const windows = Array.from({ length: windowCount }, (_, index) => {
+    const [start, end] = windowBounds(index);
+    const count = eventEntries.filter((event) => {
+      const time = Date.parse(event.time);
+      return time >= start && (index === windowCount - 1 ? time <= end : time < end);
+    }).length;
+    return { start, end, count, index };
+  });
+  const maximum = Math.max(1, ...windows.map(({ count }) => count));
+  chart.replaceChildren(...windows.map(({ start, end, count, index }) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.dataset.index = index;
+    button.setAttribute("aria-label", `${count} events from ${timestamp(start)} to ${timestamp(end)}`);
+    const total = document.createElement("strong");
+    total.textContent = count;
+    const bar = document.createElement("meter");
+    bar.max = maximum;
+    bar.value = count;
+    bar.setAttribute("aria-hidden", "true");
+    const label = document.createElement("span");
+    label.textContent = chartTime.format(start);
+    button.append(total, bar, label);
+    button.addEventListener("click", () => {
+      selectedWindow = selectedWindow === index ? null : index;
+      byId("event-range").value = "";
+      updateChartSelection();
+      resetEventRows();
+    });
+    return button;
+  }));
+  updateChartSelection();
+  if (activeIndex !== undefined) chart.querySelectorAll("button")[Number(activeIndex)]?.focus();
+}
+
+function filteredJson() {
+  return JSON.stringify(matchingEvents, null, 2);
+}
+
+function resetEventRows() {
+  visibleCount = pageSize;
+  renderEvents();
+}
+
 function renderEvents() {
   const phrase = byId("event-query").value.trim().toLowerCase();
   const site = byId("event-site").value;
-  const level = byId("event-level").value;
-  matchingEvents = eventEntries.filter((event) =>
-    (!site || event.site === site) && (!level || event.level === level) &&
-    (!phrase || [event.message, event.site, event.component].some((value) => value.toLowerCase().includes(phrase)))
-  );
+  const range = Number(byId("event-range").value);
+  const window = selectedWindow === null ? null : windowBounds(selectedWindow);
+  const scopedEvents = eventEntries.filter((event) => {
+    const time = Date.parse(event.time);
+    const inWindow = !window || (time >= window[0] && (selectedWindow === windowCount - 1 ? time <= window[1] : time < window[1]));
+    return inWindow && (!range || time >= sampledTime - range * hour) &&
+      (!site || event.site === site) &&
+      (!phrase || [event.message, event.site, event.component].some((value) => value.toLowerCase().includes(phrase)));
+  });
+  for (const button of document.querySelectorAll("[data-severity]")) {
+    const level = button.dataset.severity;
+    button.setAttribute("aria-pressed", String(level === severity));
+    button.querySelector("strong").textContent = scopedEvents.filter((event) => event.level === level).length;
+  }
+  matchingEvents = scopedEvents.filter((event) => !severity || event.level === severity);
   const rows = matchingEvents.slice(0, visibleCount);
   byId("event-count").textContent = matchingEvents.length
     ? `Showing ${rows.length} of ${matchingEvents.length} events`
     : "No matching events";
   byId("show-more").hidden = rows.length >= matchingEvents.length;
   byId("export-events").disabled = !matchingEvents.length;
+  if (byId("json-panel").open) byId("event-json").textContent = filteredJson();
   byId("events").replaceChildren(...rows.map((event) => {
     const item = document.createElement("li");
     const badge = document.createElement("span");
@@ -106,9 +182,11 @@ export function renderStatus(data) {
     }
   }
   eventEntries = data.events.entries;
+  sampledTime = Date.parse(data.sampled);
   byId("event-update").textContent = data.events.updated
     ? "Collected " + timestamp(data.events.updated)
     : "Log snapshot unavailable";
+  renderChart();
   renderEvents();
 }
 
@@ -130,24 +208,50 @@ async function refresh() {
   }
 }
 
-for (const id of ["event-query", "event-site", "event-level"]) {
-  byId(id).addEventListener("input", () => {
-    visibleCount = pageSize;
-    renderEvents();
+for (const id of ["event-query", "event-site"]) {
+  byId(id).addEventListener("input", resetEventRows);
+}
+byId("event-range").addEventListener("input", () => {
+  selectedWindow = null;
+  updateChartSelection();
+  resetEventRows();
+});
+for (const button of document.querySelectorAll("[data-severity]")) {
+  button.addEventListener("click", () => {
+    severity = severity === button.dataset.severity ? "" : button.dataset.severity;
+    resetEventRows();
   });
 }
+byId("clear-filters").addEventListener("click", () => {
+  for (const id of ["event-query", "event-site", "event-range"]) byId(id).value = "";
+  severity = "";
+  selectedWindow = null;
+  updateChartSelection();
+  resetEventRows();
+});
 byId("show-more").addEventListener("click", () => {
   visibleCount += pageSize;
   renderEvents();
 });
 byId("export-events").addEventListener("click", () => {
-  const blob = new Blob([JSON.stringify(matchingEvents, null, 2)], { type: "application/json" });
+  const blob = new Blob([filteredJson()], { type: "application/json" });
   const url = URL.createObjectURL(blob);
   const download = document.createElement("a");
   download.href = url;
   download.download = "deployment-events.json";
   download.click();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
+});
+byId("json-panel").addEventListener("toggle", () => {
+  if (byId("json-panel").open) byId("event-json").textContent = filteredJson();
+});
+byId("copy-json").addEventListener("click", async () => {
+  try {
+    await navigator.clipboard.writeText(filteredJson());
+    byId("copy-status").textContent = "Copied";
+  } catch {
+    byId("copy-status").textContent = "Clipboard unavailable. Select the JSON to copy it.";
+  }
 });
 if (byId("refresh")) {
   byId("refresh").addEventListener("click", refresh);

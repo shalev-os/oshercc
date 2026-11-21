@@ -27,6 +27,8 @@ The production build is generated in `dist/`. The site is static and requires no
 
 The public GitHub projects section requests GitHub's public API directly and hides itself if the API is unavailable. Fonts load from Google Fonts; all certificate and CV files are served from the site's own `public/` directory.
 
+The [Deployment Console demo](https://osher.cc/deployment-console/) showcases release monitoring, activity filters, and JSON inspection with sample events. Its [source and feature overview](public/deployment-console/) are included in this repository.
+
 ## Deployment
 
 Repository: [shalev-os/oshercc](https://github.com/shalev-os/oshercc).
