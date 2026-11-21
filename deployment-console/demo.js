@@ -19,7 +19,6 @@ const portfolio = "portfolio.example";
 const catalog = "catalog.example";
 const scenarios = {
   healthy: "All sample sites are live and the latest file integrity check passed.",
-  deploying: "A validated commit arrived. The existing release stays online while the server builds.",
   rollback: "The candidate failed its health check. The console shows the failure while the prior release serves traffic.",
   integrity: "AIDE flagged a baseline change for review. All sample sites are still serving traffic.",
 };
@@ -57,11 +56,20 @@ function scenarioData(mode) {
     event(-4320, portfolio, "Visits", "info", "Page loaded", { page: "Home page", clientIp: "198.51.100.91", httpStatus: 200, originResponseMs: 13, responseBytes: 4976, originProtocol: "HTTP/1.1" }),
     event(-12000, "server", "Auditd", "info", "Service configuration changed", { auditEventId: "315", rule: "demo_service_config", result: "success" }),
   ];
+  sites.push({
+    ...site("console.example", "Deployment Console", "DC", "31ac42e", -50),
+    timer: false, manualDeploy: true,
+  });
+  for (const sample of sites) {
+    sample.workflowRepo = sample.domain === catalog ? "shalev-os/mazonhaosher" : "shalev-os/oshercc";
+    sample.onDeploy = () => setScenario("deploying", sample.domain);
+  }
   if (mode === "deploying") {
-    Object.assign(sites[0], { deploying: true, building: true, lastCheck: time(-1), signal: time(-1) });
+    const target = sites.find((site) => site.domain === deployTarget);
+    Object.assign(target, { deploying: true, building: true, lastCheck: time(-1), signal: time(-1) });
     host.load[0] = 1.18;
     host.memory.used = 691 * mib;
-    entries.unshift(event(-1, portfolio, "Build", "info", "Building validated commit 3a91fc8", { commit: "3a91fc8", ciStatus: "success", phase: "building" }));
+    entries.unshift(event(-1, target.domain, "Build", "info", "Building validated commit 3a91fc8", { commit: "3a91fc8", ciStatus: "success", phase: "building" }));
   }
   if (mode === "rollback") {
     Object.assign(sites[1], { failed: true, lastCheck: time(-1), signal: time(-2) });
@@ -74,20 +82,27 @@ function scenarioData(mode) {
     Object.assign(security, { integrity: "changes", lastScan: time(-1) });
     entries.unshift(event(-1, "server", "AIDE", "warning", "Integrity baseline differences detected", { baseline: "changed", entries: 2 }));
   }
-  sites.push({ ...sites[0], domain: "console.example", name: "Deployment Console", mark: "DC", sharedTimer: true });
   return { sampled: time(0), sites, security, host, events: { entries, updated: time(0) } };
 }
 
 const controls = [...document.querySelectorAll("[data-scenario]")];
 let mode = "healthy";
+let deployTarget = portfolio;
+
+function setScenario(next, target = portfolio) {
+  mode = next;
+  deployTarget = target;
+  for (const control of controls) {
+    control.setAttribute("aria-pressed", String(control.dataset.scenario === mode));
+  }
+  const description = mode === "deploying"
+    ? `Simulated deployment for ${deployTarget}. The existing release stays online while the server builds.`
+    : scenarios[mode];
+  document.getElementById("scenario-description").textContent = description;
+  renderStatus(scenarioData(mode));
+}
+
 for (const button of controls) {
-  button.addEventListener("click", () => {
-    for (const control of controls) {
-      control.setAttribute("aria-pressed", String(control === button));
-    }
-    mode = button.dataset.scenario;
-    document.getElementById("scenario-description").textContent = scenarios[mode];
-    renderStatus(scenarioData(mode));
-  });
+  button.addEventListener("click", () => setScenario(button.dataset.scenario));
 }
 startRefresh(() => renderStatus(scenarioData(mode)));

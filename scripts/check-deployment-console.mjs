@@ -203,8 +203,17 @@ if (live) {
   range.dispatchEvent(new dom.window.Event("input"));
   assert.match(byId("event-count").textContent, /of 15 events/);
   byId("clear-filters").click();
+  const manualCard = document.querySelector('[data-deploy-target="console.example"]').closest(".card");
+  assert.match(manualCard.querySelector(".build-window").textContent, /Deployment schedule/);
+  assert.match(manualCard.querySelector(".build-window-note").textContent, /simulated deployment/);
+  const demoActions = [...document.querySelectorAll(".workflow")];
+  assert.equal(demoActions.length, 3);
+  assert.equal(demoActions[1].href, "https://github.com/shalev-os/mazonhaosher/actions");
+  document.querySelector('[aria-label="Deploy catalog.example now"]').click();
+  assert.match(byId("scenario-description").textContent, /Simulated deployment for catalog\.example/);
+  assert.equal(byId("building").textContent, "1");
   scenario("deploying");
-  assert.equal(byId("building").textContent, "2");
+  assert.equal(byId("building").textContent, "1");
   assert.equal(document.querySelector(".build-state").textContent, "Building now");
   assert.equal(byId("host-load").textContent, "1.18");
   scenario("rollback");

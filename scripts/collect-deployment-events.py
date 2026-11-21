@@ -17,7 +17,7 @@ RETENTION_DAYS = 14
 MAX_PER_GROUP = 1250
 UNIT_TYPES = {
     **{f"osher-site-{kind}@{site}.service": (site, label)
-       for site in DOMAINS
+       for site in (*DOMAINS, "deploy.osher.cc")
        for kind, label in (("deploy", "Deploy"), ("build", "Build"), ("notify", "GitHub Actions"))},
     "osher-integrity-check.service": ("server", "AIDE"),
     "fail2ban.service": ("server", "Fail2ban"),

@@ -94,8 +94,14 @@ function renderSite(site) {
   select(".last-check").textContent = timestamp(site.lastCheck);
   const schedule = select(".build-window");
   const timerState = select(".timer-state");
-  timerState.textContent = site.timer ? "Timer running" : "Timer inactive";
+  timerState.textContent = site.manualDeploy ? "Manual deployment" : site.timer ? "Timer running" : "Timer inactive";
   timerState.dataset.running = String(site.timer);
+  if (site.manualDeploy) {
+    select(".build-window-head span:first-child").textContent = "Deployment schedule";
+    select(".build-window-note").textContent = liveMode
+      ? "Deploy now checks for a validated release."
+      : "Deploy now starts a simulated deployment.";
+  }
   const nextBuild = select(".next-build");
   if (site.timer && site.nextBuild) {
     schedule.dataset.next = site.nextBuild;
@@ -103,15 +109,16 @@ function renderSite(site) {
     nextBuild.dateTime = site.nextBuild;
     nextBuild.textContent = logTime.format(new Date(site.nextBuild));
   }
-  select(".build-countdown").textContent = site.timer ? "Awaiting schedule" : "Paused";
+  select(".build-countdown").textContent = site.manualDeploy ? "On demand" : site.timer ? "Awaiting schedule" : "Paused";
   select(".last-timer").textContent = timestamp(site.lastTimer);
   select(".build-state").textContent = site.building ? "Building now" : site.deploying ? "Deploying" : "Idle";
-  if (site.repo) {
-    select(".workflow").href = "https://github.com/" + site.repo + "/actions";
+  const workflowRepo = site.workflowRepo || site.repo;
+  if (workflowRepo) {
+    select(".workflow").href = "https://github.com/" + workflowRepo + "/actions";
   } else {
     select(".workflow").remove();
   }
-  if (liveMode) {
+  if (liveMode || site.onDeploy) {
     const control = select(".manual-deployment");
     control.hidden = false;
     const target = site.sharedTimer ? "osher.cc" : site.domain;
@@ -119,7 +126,7 @@ function renderSite(site) {
     control.dataset.busy = String(Boolean(site.deploying || site.building));
     const button = control.querySelector("button");
     button.setAttribute("aria-label", `Deploy ${site.domain} now`);
-    button.addEventListener("click", () => deploySite(target));
+    button.addEventListener("click", site.onDeploy || (() => deploySite(target)));
     updateDeployControl(control);
   }
   return card;
@@ -364,7 +371,7 @@ function renderAttention(sites, security) {
   for (const site of sites) {
     if (!site.online) issues.push(`${site.domain} is offline`);
     if (site.failed) issues.push(`${site.domain} has a failed deployment`);
-    if (!site.timer && !site.sharedTimer) issues.push(`${site.domain} fallback timer is inactive`);
+    if (!site.timer && !site.sharedTimer && !site.manualDeploy) issues.push(`${site.domain} fallback timer is inactive`);
   }
   if (!security.auditActive) issues.push("System audit is inactive");
   if (!security.fail2ban) issues.push("SSH protection is inactive");
@@ -424,7 +431,7 @@ export function renderStatus(data) {
   const { sites, security } = data;
   byId("live").textContent = sites.filter((site) => site.online).length + "/" + sites.length;
   byId("building").textContent = sites.filter((site) => site.deploying).length;
-  const independentSites = sites.filter(site => !site.sharedTimer);
+  const independentSites = sites.filter(site => !site.sharedTimer && !site.manualDeploy);
   byId("fallback").textContent = independentSites.filter((site) => site.timer).length + "/" + independentSites.length;
   byId("sites").replaceChildren(...sites.map(renderSite));
   byId("sample").textContent = "Updated " + timestamp(data.sampled);

@@ -17,6 +17,6 @@ An interactive demo of the private dashboard that monitors the Linux and Nginx d
 
 The console and demo use the same frontend files. On the deployment hostname the frontend reads the protected status API. On the portfolio it loads browser-local sample data with no requests to production. The public status API path returns 404.
 
-The portfolio's CI tests both modes. After validation on `main`, the Linux server publishes one build for the public demo and the authenticated console. Vite includes content hashes in the asset names so an HTML release can request its exact assets through the CDN.
+The portfolio's CI tests both modes. The portfolio deployment publishes the public demo. The authenticated dashboard has its own release and can be published manually after validation on `main`. Vite includes content hashes in the asset names so an HTML release can request its exact assets through the CDN.
 
 Open [the public demo](https://osher.cc/deployment-console/) or serve this directory with a static HTTP server.
