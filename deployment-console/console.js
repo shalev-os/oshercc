@@ -11,7 +11,7 @@ const hour = 3600000;
 const windowSize = 4 * hour;
 const windowCount = 6;
 const refreshPreference = "osher-console-refresh";
-const pageSize = 12;
+const pageSize = 50;
 let visibleCount = pageSize;
 let eventEntries = [];
 let eventsUpdated = null;
@@ -168,7 +168,7 @@ function eventContext(event) {
     const title = document.createElement("dt");
     title.textContent = ({ clientIp: "Client IP", sourceIp: "Source IP" })[key] || key.replace(/([a-z])([A-Z])/g, "$1 $2");
     const description = document.createElement("dd");
-    description.textContent = key === "commit" ? value.slice(0, 12) : String(value);
+    description.textContent = value !== null && typeof value === "object" ? JSON.stringify(value) : String(value);
     group.append(title, description);
     if ((key === "clientIp" || key === "sourceIp") && typeof value === "string") {
       const copy = document.createElement("button");
@@ -236,7 +236,10 @@ function renderEvents() {
   byId("event-count").textContent = matchingEvents.length
     ? `Showing ${rows.length} of ${matchingEvents.length} events`
     : "No matching events";
-  byId("show-more").hidden = rows.length >= matchingEvents.length;
+  const showMore = byId("show-more");
+  const nextCount = Math.min(pageSize, matchingEvents.length - rows.length);
+  showMore.hidden = nextCount === 0;
+  showMore.textContent = `Show ${nextCount} more events`;
   byId("export-events").disabled = !matchingEvents.length;
   byId("export-csv").disabled = !matchingEvents.length;
   if (byId("json-panel").open) byId("event-json").textContent = filteredJson();
