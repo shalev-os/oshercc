@@ -106,7 +106,6 @@ if (live) {
   assert.match(byId("sites").textContent, /Shared release schedule/);
   byId("event-category").value = "Visits";
   byId("event-category").dispatchEvent(new dom.window.Event("input"));
-  events()[0].querySelector(".event-inspect").click();
   assert.match(events()[0].querySelector(".event-context").textContent, /203\.0\.113\./);
   byId("clear-filters").click();
   assert.equal(document.querySelectorAll("[data-range]").length, 6);
