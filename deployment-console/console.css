@@ -133,3 +133,12 @@ meter::-moz-meter-bar{background:var(--gold)}
 .json-panel :focus-visible{outline:2px solid var(--gold);outline-offset:3px}
 @media(max-width:650px){.sites{grid-template-columns:1fr}.brand,.bar-actions{gap:.5rem}.bar{height:64px}.brand-sub{display:none}.log-controls{grid-template-columns:1fr 1fr}.log-controls label:first-child{grid-column:1/-1}.activity-chart{grid-template-columns:repeat(3,minmax(0,1fr))}.activity li{grid-template-columns:7ch minmax(0,1fr);gap:.25rem .6rem}.activity time{grid-column:2;text-align:left}}
 @media(max-width:460px){.bar{height:auto;min-height:64px;gap:.5rem;flex-wrap:wrap;padding-block:.65rem}.bar-actions{flex-wrap:wrap}.bar-actions button{padding:.45rem .65rem}}
+.health-summary{padding:1rem 1.4rem}
+.health-summary p{margin:0;color:var(--muted)}
+.health-summary ul{display:grid;gap:.35rem;margin:.6rem 0 0;padding-inline-start:1.25rem;color:var(--gold)}
+.traffic-table{overflow-x:auto}
+.traffic-table table{width:100%;border-collapse:collapse;font-size:.875rem;text-align:left}
+.traffic-table th,.traffic-table td{padding:.55rem .65rem}
+.traffic-table thead{color:var(--muted)}
+.traffic-table tbody tr{border-top:1px solid var(--line)}
+.traffic-table tbody td{font-variant-numeric:tabular-nums;white-space:nowrap}

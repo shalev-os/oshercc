@@ -61,12 +61,20 @@ try {
   await new Promise(setImmediate);
   const speed = byId("refresh-rate");
   assert.equal(speed.value, "10");
-  assert.deepEqual([...speed.options].map(option => Number(option.value)), [5, 10, 20, 30, 40, 50, 60, 600, 1200, 1800, 2700, 3600]);
+  assert.deepEqual([...speed.options].map(option => Number(option.value)), [0, 5, 10, 20, 30, 40, 50, 60, 600, 1200, 1800, 2700, 3600]);
   speed.value = "1200";
   speed.dispatchEvent(new dom.window.Event("change"));
   await new Promise(setImmediate);
   assert.deepEqual(scheduled, [1000, 10000, 1200000]);
   assert.equal(window.localStorage.getItem("osher-console-refresh"), "1200");
+  speed.value = "0";
+  speed.dispatchEvent(new dom.window.Event("change"));
+  await new Promise(setImmediate);
+  assert.deepEqual(scheduled, [1000, 10000, 1200000]);
+  assert.equal(window.localStorage.getItem("osher-console-refresh"), "0");
+  assert.equal(requests, live ? 2 : 0);
+  byId("refresh").click();
+  await new Promise(setImmediate);
 } finally {
   globalThis.setInterval = setInterval;
 }
@@ -86,7 +94,9 @@ assert.equal(byId("audit-watches").textContent, "8");
 assert.equal(byId("ssh-blocked").textContent, "1");
 
 if (live) {
-  assert.equal(requests, 2);
+  assert.equal(requests, 3);
+  assert.equal(byId("traffic-table").hidden, true);
+  assert.match(byId("traffic-empty").textContent, /No retained page loads/);
   assert.equal(byId("connection").textContent, "Live");
   assert.equal(byId("live").textContent, "1/1");
   assert.equal(byId("integrity-status").textContent, "Baseline matches");
@@ -107,6 +117,11 @@ if (live) {
   assert.equal(byId("integrity-status").textContent, "Baseline matches");
   assert.equal(byId("live").textContent, "3/3");
   assert.equal(byId("fallback").textContent, "2/2");
+  assert.equal(byId("attention-items").hidden, true);
+  assert.equal(byId("traffic-table").hidden, false);
+  assert.equal(byId("traffic-rows").rows.length, 3);
+  const consoleTraffic = [...byId("traffic-rows").rows].find(row => row.cells[0].textContent === "console.example");
+  assert.deepEqual([...consoleTraffic.cells].map(cell => cell.textContent), ["console.example", "1", "0 / 0", "9 ms"]);
   assert.match(byId("sites").textContent, /Shared release schedule/);
   byId("event-category").value = "Visits";
   byId("event-category").dispatchEvent(new dom.window.Event("input"));
@@ -159,6 +174,7 @@ if (live) {
   assert.equal(byId("export-csv").disabled, false);
   byId("clear-filters").click();
   scenario("integrity");
+  assert.match(byId("attention-items").textContent, /File integrity changes detected/);
   assert.equal(byId("integrity-status").textContent, "Changes detected");
 }
 console.log(`Deployment console ${live ? "production" : "demo"} checks passed.`);

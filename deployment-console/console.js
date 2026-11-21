@@ -303,6 +303,67 @@ function renderHost(host) {
   }
 }
 
+function renderAttention(sites, security) {
+  const issues = [];
+  for (const site of sites) {
+    if (!site.online) issues.push(`${site.domain} is offline`);
+    if (site.failed) issues.push(`${site.domain} has a failed deployment`);
+    if (!site.timer && !site.sharedTimer) issues.push(`${site.domain} fallback timer is inactive`);
+  }
+  if (!security.auditActive) issues.push("System audit is inactive");
+  if (!security.fail2ban) issues.push("SSH protection is inactive");
+  if (!security.integrityTimer) issues.push("File integrity timer is inactive");
+  if (security.integrity === "changes") issues.push("File integrity changes detected");
+  if (security.integrity === "failed") issues.push("File integrity scan failed");
+
+  const status = byId("attention-status");
+  const message = issues.length ? `${issues.length} active ${issues.length === 1 ? "issue" : "issues"}` : "No active issues in the latest sample";
+  if (status.textContent !== message) status.textContent = message;
+  const list = byId("attention-items");
+  list.hidden = !issues.length;
+  list.replaceChildren(...issues.map(issue => {
+    const item = document.createElement("li");
+    item.textContent = issue;
+    return item;
+  }));
+}
+
+function renderTraffic(events, now, updated) {
+  const bySite = new Map();
+  for (const event of events) {
+    const time = Date.parse(event.time);
+    if (event.component !== "Visits" || !(time >= now - 24 * hour && time <= now)) continue;
+
+    if (!bySite.has(event.site)) bySite.set(event.site, { loads: 0, clientErrors: 0, serverErrors: 0, times: [] });
+    const counts = bySite.get(event.site);
+    const { httpStatus, originResponseMs } = event.details || {};
+    counts.loads++;
+    if (httpStatus >= 400 && httpStatus < 500) counts.clientErrors++;
+    if (httpStatus >= 500 && httpStatus < 600) counts.serverErrors++;
+    if (Number.isFinite(originResponseMs) && originResponseMs >= 0) counts.times.push(originResponseMs);
+  }
+
+  const rows = [...bySite].sort(([left], [right]) => left.localeCompare(right)).map(([site, counts]) => {
+    const row = document.createElement("tr");
+    const title = document.createElement("th");
+    title.scope = "row";
+    title.textContent = site;
+    row.append(title);
+    const times = counts.times.sort((left, right) => left - right);
+    const p95 = times[Math.ceil(times.length * 0.95) - 1];
+    for (const value of [counts.loads, `${counts.clientErrors} / ${counts.serverErrors}`, p95 === undefined ? "—" : `${p95} ms`]) {
+      row.insertCell().textContent = value;
+    }
+    return row;
+  });
+  byId("traffic-rows").replaceChildren(...rows);
+  byId("traffic-table").hidden = !rows.length;
+  const empty = byId("traffic-empty");
+  empty.hidden = !!rows.length;
+  const message = updated ? "No retained page loads in the last 24 hours" : "Log snapshot unavailable";
+  if (empty.textContent !== message) empty.textContent = message;
+}
+
 export function renderStatus(data) {
   const { sites, security } = data;
   byId("live").textContent = sites.filter((site) => site.online).length + "/" + sites.length;
@@ -336,6 +397,7 @@ export function renderStatus(data) {
   byId("last-scan").textContent = timestamp(security.lastScan);
   byId("next-scan").textContent = security.integrityTimer ? timestamp(security.nextScan) : "Timer inactive";
   renderHost(data.host);
+  renderAttention(sites, security);
   const sourceSelect = byId("event-site");
   for (const site of sites) {
     if (![...sourceSelect.options].some((option) => option.value === site.domain)) {
@@ -351,6 +413,7 @@ export function renderStatus(data) {
   }
   sampledTime = Date.parse(data.sampled);
   clockOffset = sampledTime - Date.now();
+  renderTraffic(eventEntries, sampledTime, data.events.updated);
   byId("event-update").textContent = data.events.updated
     ? "Collected " + timestamp(data.events.updated)
     : "Log snapshot unavailable";
@@ -439,9 +502,12 @@ export function startRefresh(update) {
   }
   const schedule = () => {
     clearInterval(timer);
-    timer = setInterval(() => {
-      if (!document.hidden) update();
-    }, Number(select.value) * 1000);
+    const seconds = Number(select.value);
+    if (seconds > 0) {
+      timer = setInterval(() => {
+        if (!document.hidden) update();
+      }, seconds * 1000);
+    }
   };
   select.addEventListener("change", () => {
     try {
@@ -450,7 +516,7 @@ export function startRefresh(update) {
       // Keep the user's selection for this page even without persistent storage.
     }
     schedule();
-    update();
+    if (select.value !== "0") update();
   });
   button.hidden = false;
   button.addEventListener("click", update);
