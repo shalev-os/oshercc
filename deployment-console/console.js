@@ -19,6 +19,8 @@ let matchingEvents = [];
 let sampledTime = Date.now();
 let clockOffset = 0;
 let severity = "";
+const hostCategories = new Map([["Systemd", "host-systemd-count"], ["Host services", "host-service-count"], ["Kernel", "host-kernel-count"]]);
+const hostErrors = "Host errors";
 let selectedWindow = null;
 let inspectedEvent = null;
 let chartWindows = [];
@@ -221,7 +223,7 @@ function renderEvents() {
     const inWindow = !window || (time >= window[0] && (selectedWindow === windowCount - 1 ? time <= window[1] : time < window[1]));
     return inWindow && (!range || time >= sampledTime - range * hour) &&
       (!site || event.site === site) &&
-      (!category || event.component === category) &&
+      (!category || (category === hostErrors ? hostCategories.has(event.component) && event.level === "error" : event.component === category)) &&
       (!phrase || [event.message, event.site, event.component, JSON.stringify(event.details || {})]
         .some((value) => value.toLowerCase().includes(phrase)));
   });
@@ -429,6 +431,11 @@ function renderEventSnapshot(events) {
     }
   }
   renderTraffic(eventEntries, sampledTime, eventsUpdated);
+  const hostEvents = eventEntries.filter(event => hostCategories.has(event.component) && Date.parse(event.time) >= sampledTime - 24 * hour);
+  for (const [component, countId] of hostCategories) {
+    byId(countId).textContent = hostEvents.filter(event => event.component === component).length;
+  }
+  byId("host-error-count").textContent = hostEvents.filter(event => event.level === "error").length;
   byId("event-update").textContent = eventsUpdated
     ? "Collected " + timestamp(eventsUpdated)
     : "Log snapshot unavailable";
@@ -583,6 +590,7 @@ function startEventStream() {
 
 export function startLive() {
   byId("live-controls").hidden = false;
+  byId("host-activity").hidden = false;
   const views = {
     overview: {},
     builds: { category: "Build" },
@@ -590,12 +598,15 @@ export function startLive() {
     integrity: { category: "AIDE", level: "warning" },
     visits: { category: "Visits" },
   };
-  for (const button of byId("live-controls").querySelectorAll("button")) {
+  for (const button of document.querySelectorAll("[data-live-view], [data-host-view]")) {
     button.addEventListener("click", () => {
-      const { query = "", category = "", level = "" } = views[button.dataset.liveView];
+      const hostView = button.dataset.hostView;
+      const { query = "", category = "", level = "" } = hostView
+        ? { category: hostView === "errors" ? hostErrors : hostView }
+        : views[button.dataset.liveView];
       byId("event-query").value = query;
       byId("event-site").value = "";
-      byId("event-range").value = "";
+      byId("event-range").value = hostView ? "24" : "";
       const select = byId("event-category");
       if (![...select.options].some(option => option.value === category)) select.add(new Option(category, category));
       select.value = category;

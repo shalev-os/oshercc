@@ -129,6 +129,7 @@ if (live) {
       updated: new Date(Date.parse(time) + 1000).toISOString(),
       entries: Array.from({ length: 57 }, (_, index) => ({
         ...event,
+        ...(index === 56 && { component: "Kernel", level: "error" }),
         message: index === 0 ? "Release event delivered by WebSocket" : `Earlier event ${index}`,
       })),
     }),
@@ -152,6 +153,12 @@ if (live) {
   byId("show-more").click();
   assert.equal(events().length, 57);
   assert.equal(byId("show-more").hidden, true);
+  assert.equal(byId("host-kernel-count").textContent, "1");
+  assert.equal(byId("host-error-count").textContent, "1");
+  document.querySelector('[data-host-view="errors"]').click();
+  assert.equal(byId("event-range").value, "24");
+  assert.equal(events().length, 1);
+  assert.match(events()[0].textContent, /Kernel/);
 } else {
   assert.equal(requests, 0);
   assert.equal(byId("audit-status").textContent, "Active");

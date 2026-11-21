@@ -114,6 +114,15 @@
         <article class="card host-card"><h3>Root disk</h3><strong id="disk-amount">—</strong><meter id="disk-meter" aria-label="Root disk utilization" max="100" value="0"></meter></article>
       </div>
     </section>
+    <section id="host-activity" aria-labelledby="host-activity-heading" hidden>
+      <div class="section-heading"><h2 id="host-activity-heading">Host activity</h2><p>Last 24 hours of retained events</p></div>
+      <div class="host-grid host-activity-grid">
+        <button class="card host-card" type="button" data-host-view="Systemd"><strong id="host-systemd-count">0</strong><span>Service jobs</span></button>
+        <button class="card host-card" type="button" data-host-view="Host services"><strong id="host-service-count">0</strong><span>Service warnings and errors</span></button>
+        <button class="card host-card" type="button" data-host-view="Kernel"><strong id="host-kernel-count">0</strong><span>Kernel alerts</span></button>
+        <button class="card host-card" type="button" data-host-view="errors"><strong id="host-error-count">0</strong><span>Host errors</span></button>
+      </div>
+    </section>
     <section aria-labelledby="traffic-heading">
       <div class="section-heading"><h2 id="traffic-heading">Origin traffic</h2><p>Last 24 hours of retained page loads</p></div>
       <div class="card health-summary">
