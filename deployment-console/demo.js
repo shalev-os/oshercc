@@ -41,6 +41,9 @@ function scenarioData(mode) {
     disk: { used: 4200 * mib, total: 8192 * mib },
   };
   const entries = [
+    event(-4, "console.example", "Visits", "info", "Page loaded", { page: "Console", httpStatus: 200, originResponseMs: 9, responseBytes: 9214, originProtocol: "HTTP/1.1" }),
+    event(-5, portfolio, "Visits", "info", "Page loaded", { page: "Home page", httpStatus: 200, originResponseMs: 11, responseBytes: 4976, originProtocol: "HTTP/1.1" }),
+    event(-7, catalog, "Visits", "info", "Page loaded", { page: "Home page", httpStatus: 200, originResponseMs: 8, responseBytes: 6544, originProtocol: "HTTP/1.1" }),
     event(-36, portfolio, "Deploy", "success", "Release 73da621 is serving traffic", { commit: "73da621", outcome: "published", healthCheck: "passed" }),
     event(-36, portfolio, "Build", "success", "Vite build completed", { tool: "Vite", durationSeconds: 8.4, outcome: "built" }),
     event(-37, portfolio, "Deploy", "info", "Deploy started", { phase: "started", trigger: "GitHub Actions" }),

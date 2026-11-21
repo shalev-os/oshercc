@@ -102,7 +102,14 @@ if (live) {
   byId("activity-chart").children[0].click();
   assert.equal(events().length, 0);
   byId("clear-filters").click();
-  assert.equal(events().length, 9);
+  assert.equal(events().length, 12);
+  const category = byId("event-category");
+  category.value = "Visits";
+  category.dispatchEvent(new dom.window.Event("input"));
+  assert.equal(events().length, 3);
+  events()[0].querySelector(".event-inspect").click();
+  assert.equal(JSON.parse(events()[0].querySelector(".event-json").textContent).details.httpStatus, 200);
+  byId("clear-filters").click();
   scenario("deploying");
   assert.equal(byId("building").textContent, "1");
   assert.equal(document.querySelector(".build-state").textContent, "Building now");
