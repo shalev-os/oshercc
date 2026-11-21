@@ -7,7 +7,7 @@ byId("environment-label").textContent = live ? "LINUX PRODUCTION" : "INTERACTIVE
 byId("sites-heading").textContent = live ? "Production sites" : "Sample sites";
 byId("console-description").textContent = live
   ? "Live release status for the Osher websites."
-  : "Explore production workflows, rollback events, and server integrity using sample data.";
+  : "Explore deployment workflows with simulated events and host metrics. This demo is offline from production.";
 
 if (live) {
   byId("connection").hidden = false;

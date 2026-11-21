@@ -13,6 +13,7 @@ body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 85% -15%,#2
 button,.workflow{border:1px solid #415165;color:inherit;background:#141c28;border-radius:7px;padding:.6rem .95rem;font:inherit;cursor:pointer}
 button:disabled{opacity:.55}
 button:hover,.workflow:hover{border-color:var(--gold)}
+.refresh-setting{display:flex;align-items:center;gap:.4rem;color:var(--muted);font-size:.8rem;white-space:nowrap}
 #refresh-rate{appearance:none;border:1px solid #415165;border-radius:7px;padding:.6rem 1.55rem .6rem .65rem;color:inherit;font:.8rem var(--mono);background:linear-gradient(45deg,transparent 50%,var(--muted) 50%) calc(100% - 13px) 50% / 4px 4px no-repeat,linear-gradient(135deg,var(--muted) 50%,transparent 50%) calc(100% - 9px) 50% / 4px 4px no-repeat,#141c28}
 #refresh-rate:focus-visible{outline:2px solid var(--gold);outline-offset:3px}
 main{max-width:1280px;padding:2rem max(4vw,1rem) 4rem;margin:auto}

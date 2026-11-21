@@ -54,12 +54,13 @@ try {
   await ready;
   await new Promise(setImmediate);
   const speed = byId("refresh-rate");
-  assert.equal(speed.value, "fast");
-  speed.value = "ultra";
+  assert.equal(speed.value, "10");
+  assert.deepEqual([...speed.options].map(option => Number(option.value)), [5, 10, 20, 30, 40, 50, 60, 600, 1200, 1800, 2700, 3600]);
+  speed.value = "1200";
   speed.dispatchEvent(new dom.window.Event("change"));
   await new Promise(setImmediate);
-  assert.deepEqual(scheduled, [10000, 5000]);
-  assert.equal(window.localStorage.getItem("osher-console-refresh"), "ultra");
+  assert.deepEqual(scheduled, [10000, 1200000]);
+  assert.equal(window.localStorage.getItem("osher-console-refresh"), "1200");
 } finally {
   globalThis.setInterval = setInterval;
 }
