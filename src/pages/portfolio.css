@@ -25,7 +25,7 @@
 .so-actions{flex-wrap:wrap;gap:16px 22px}
 .so-button{background:#2449e8;color:white;padding:11px 17px;font-size:14px;font-weight:650;min-height:46px;justify-content:center}
 .so-button:hover{background:#1734b9;color:white}
-.so-secondary{border-bottom:1px solid #a7abb1;padding:8px 0;font-size:14px;font-weight:650}
+.so-secondary{min-height:46px;border-bottom:1px solid #a7abb1;padding:8px 0;font-size:14px;font-weight:650}
 .so-portrait{margin:0;background:var(--blue);color:#fff;padding:13px;position:relative}
 .so-portrait-top,.so-portrait figcaption{display:flex;align-items:center;justify-content:space-between;gap:10px}
 .so-portrait-top{padding:4px 3px 13px}
