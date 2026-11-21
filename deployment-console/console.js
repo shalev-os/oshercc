@@ -11,8 +11,9 @@ const hour = 3600000;
 const windowSize = 4 * hour;
 const windowCount = 6;
 const refreshPreference = "osher-console-refresh";
-const pageSize = 50;
-let visibleCount = pageSize;
+const eventPageSize = byId("event-page-size");
+const pageSize = () => Number(eventPageSize.value);
+let visibleCount = pageSize();
 let eventEntries = [];
 let eventsUpdated = null;
 let matchingEvents = [];
@@ -263,7 +264,8 @@ function downloadEvents(content, type, filename) {
 }
 
 function resetEventRows() {
-  visibleCount = pageSize;
+  inspectedEvent = null;
+  visibleCount = pageSize();
   renderEvents();
 }
 
@@ -297,8 +299,9 @@ function renderEvents() {
     ? `Showing ${rows.length} of ${matchingEvents.length} events`
     : "No matching events";
   const showMore = byId("show-more");
-  const nextCount = Math.min(pageSize, matchingEvents.length - rows.length);
+  const nextCount = Math.min(pageSize(), matchingEvents.length - rows.length);
   showMore.hidden = nextCount === 0;
+  byId("show-less").hidden = rows.length <= pageSize();
   showMore.textContent = `Show ${nextCount} more events`;
   byId("export-events").disabled = !matchingEvents.length;
   byId("export-csv").disabled = !matchingEvents.length;
@@ -327,12 +330,12 @@ function renderEvents() {
       renderEvents();
     });
     detail.append(inspect, source);
-    if (event.details) detail.append(eventContext(event));
     const time = document.createElement("time");
     time.dateTime = event.time;
     time.textContent = logTime.format(new Date(event.time));
     item.append(badge, detail, time);
     if (inspectedEvent === key) {
+      if (event.details) detail.append(eventContext(event));
       const json = document.createElement("pre");
       json.className = "event-json";
       json.tabIndex = 0;
@@ -585,8 +588,13 @@ byId("clear-filters").addEventListener("click", () => {
   updateChartSelection();
   resetEventRows();
 });
+eventPageSize.addEventListener("change", resetEventRows);
+byId("show-less").addEventListener("click", () => {
+  resetEventRows();
+  byId("show-more").focus();
+});
 byId("show-more").addEventListener("click", () => {
-  visibleCount += pageSize;
+  visibleCount = Math.min(visibleCount + pageSize(), matchingEvents.length);
   renderEvents();
 });
 byId("export-events").addEventListener("click", () => {
