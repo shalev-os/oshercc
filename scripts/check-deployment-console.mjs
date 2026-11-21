@@ -196,6 +196,23 @@ if (live) {
   order.value = "newest";
   order.dispatchEvent(new window.Event("change"));
   assert.equal(events()[0].querySelector("time").dateTime, firstTime);
+  events()[0].querySelector(".event-inspect").click();
+  events()[0].querySelector(".event-investigate").click();
+  assert.equal(byId("investigation").hidden, false);
+  assert.equal(order.value, "oldest");
+  assert.equal(events().length, 3);
+  assert.equal(events()[2].querySelector("time").dateTime, firstTime);
+  assert.equal(events()[2].hasAttribute("data-investigation-anchor"), true);
+  const radius = byId("investigation-radius");
+  radius.value = "60";
+  radius.dispatchEvent(new window.Event("change"));
+  assert.match(byId("event-count").textContent, /of 7 events/);
+  const bucketCount = [...byId("activity-chart").querySelectorAll("strong")]
+    .reduce((total, bucket) => total + Number(bucket.textContent), 0);
+  assert.equal(bucketCount, 7);
+  byId("close-investigation").click();
+  assert.equal(byId("investigation").hidden, true);
+  assert.equal(order.value, "newest");
   document.querySelector('[data-event-preset="Fail2ban"]').click();
   assert.equal(events().length, 1);
   assert.match(events()[0].textContent, /blocked an SSH source/);
