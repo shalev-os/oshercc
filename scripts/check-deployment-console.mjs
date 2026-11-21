@@ -39,7 +39,10 @@ const site = {
 const event = {
   site: "server", component: "AIDE", time, level: "success",
   message: "Protected files match the integrity baseline",
-  details: { baseline: "matched", outcome: "verified" },
+  details: {
+    baseline: "matched", outcome: "verified", source: "systemd journal",
+    unit: "osher-integrity-check.service", processId: 42, priority: 6,
+  },
 };
 const snapshot = {
   sites: [site],
@@ -124,7 +127,10 @@ if (live) {
   const push = new window.MessageEvent("message", {
     data: JSON.stringify({
       updated: new Date(Date.parse(time) + 1000).toISOString(),
-      entries: [{ ...event, message: "Release event delivered by WebSocket" }],
+      entries: Array.from({ length: 57 }, (_, index) => ({
+        ...event,
+        message: index === 0 ? "Release event delivered by WebSocket" : `Earlier event ${index}`,
+      })),
     }),
   });
   socket.dispatchEvent(push);
@@ -141,6 +147,11 @@ if (live) {
   await new Promise(setImmediate);
   assert.equal(byId("event-stream").textContent, "Live stream");
   assert.match(events()[0].textContent, /Release event delivered by WebSocket/);
+  assert.equal(events().length, 50);
+  assert.equal(byId("show-more").textContent, "Show 7 more events");
+  byId("show-more").click();
+  assert.equal(events().length, 57);
+  assert.equal(byId("show-more").hidden, true);
 } else {
   assert.equal(requests, 0);
   assert.equal(byId("audit-status").textContent, "Active");
@@ -169,7 +180,7 @@ if (live) {
   byId("activity-chart").children[0].click();
   assert.equal(events().length, Number(byId("activity-chart").children[0].querySelector("strong").textContent));
   byId("clear-filters").click();
-  assert.equal(events().length, 12);
+  assert.equal(events().length, 15);
   const category = byId("event-category");
   category.value = "Visits";
   category.dispatchEvent(new dom.window.Event("input"));
