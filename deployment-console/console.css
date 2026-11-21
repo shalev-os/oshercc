@@ -76,6 +76,11 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--gold);outline-offse
 .log-overview{display:grid;gap:.85rem;padding:1.15rem 1.4rem;border-bottom:1px solid var(--line);background:#111b29;border-radius:12px 12px 0 0}
 .log-overview-heading{display:flex;align-items:center;justify-content:space-between;gap:1rem}
 .log-overview-heading h3{margin:0;font-size:1rem;font-weight:650}
+.activity-caption{margin:.25rem 0 0;color:var(--muted);font-size:.8rem}
+.time-range-shortcuts{display:flex;flex-wrap:wrap;align-items:center;gap:.5rem;padding:.75rem 1.4rem 0}
+.time-range-shortcuts span{color:var(--muted);font-size:.875rem;margin-right:.2rem}
+.time-range-shortcuts button{font-size:.85rem;padding:.42rem .7rem}
+.time-range-shortcuts button[aria-pressed="true"]{border-color:var(--gold);color:var(--gold);background:#29231d}
 .log-overview-heading button,.severity-summary button,.json-toolbar button{font-size:.875rem}
 .activity-chart{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:.45rem}
 .activity-chart button{display:grid;gap:.4rem;min-width:0;padding:.55rem;text-align:left;background:#111925}
