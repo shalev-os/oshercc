@@ -7,6 +7,7 @@ import re
 import subprocess
 import tempfile
 import time
+from collections import defaultdict
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
@@ -345,14 +346,44 @@ def retain_events(recent):
     unique = {}
     for event in [*previous, *recent]:
         if event["time"] >= cutoff:
-            key = (event["time"], event["site"], event["component"], event["level"], event["message"])
+            key = (event["time"], event["site"], event["component"], event["level"],
+                   event["message"], event.get("details", {}).get("sourceIp"))
             unique[key] = event
     ordered = sorted(unique.values(), key=lambda event: event["time"], reverse=True)
+    # Correlation uses retained sensor events rather than previously derived alerts.
+    ordered = [event for event in ordered if event["component"] != "SOC"]
+    alerts = correlate_ssh_blocks(ordered)[:MAX_PER_GROUP]
     visits = [event for event in ordered if event["component"] == "Visits"][:MAX_PER_GROUP]
     host_components = {"Systemd", "Kernel", "Host services"}
     host = [event for event in ordered if event["component"] in host_components][:MAX_PER_GROUP]
     operational = [event for event in ordered if event["component"] not in host_components | {"Visits"}][:MAX_PER_GROUP]
-    return sorted([*visits, *operational, *host], key=lambda event: event["time"], reverse=True)
+    return sorted([*visits, *operational, *host, *alerts], key=lambda event: event["time"], reverse=True)
+
+
+def correlate_ssh_blocks(events):
+    windows = defaultdict(dict)
+    for event in events:
+        details = event.get("details", {})
+        address = details.get("sourceIp")
+        if (event["component"] != "Fail2ban" or details.get("action") != "blocked"
+                or not address or details.get("context") == "Firewall verification"):
+            continue
+        minute = int(datetime.fromisoformat(event["time"]).timestamp() // 900)
+        block_times = windows[(details.get("jail", "sshd"), minute)]
+        block_times[address] = max(event["time"], block_times.get(address, ""))
+
+    alerts = []
+    for (jail, window), block_times in windows.items():
+        if len(block_times) < 3:
+            continue
+        start = datetime.fromtimestamp(window * 900, timezone.utc)
+        alerts.append(dict(
+            time=max(block_times.values()), site="server", component="SOC", level="warning",
+            message=f"Fail2ban blocked {len(block_times)} distinct SSH sources in a 15-minute window.",
+            details=dict(jail=jail, distinctSources=len(block_times), windowStart=start.isoformat(),
+                         windowMinutes=15, source="Fail2ban", operatorAction="Review SSH events"),
+        ))
+    return sorted(alerts, key=lambda alert: alert["time"], reverse=True)
 
 
 def main():
