@@ -253,7 +253,7 @@ byId("copy-json").addEventListener("click", async () => {
     byId("copy-status").textContent = "Clipboard unavailable. Select the JSON to copy it.";
   }
 });
-if (byId("refresh")) {
+export function startLive() {
   byId("refresh").addEventListener("click", refresh);
   setInterval(refresh, 15000);
   refresh();

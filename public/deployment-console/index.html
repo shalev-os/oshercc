@@ -3,24 +3,27 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="robots" content="index, follow">
-  <title>Deployment Console Demo · Osher</title>
+  <title>Deployment Console · Osher</title>
   <link rel="stylesheet" href="console.css">
-  <script type="module" src="demo.js"></script>
+  <script type="module" src="entry.js"></script>
 </head>
 <body>
   <header class="bar">
     <div class="brand"><span class="mark" aria-hidden="true">O</span> OSHER <span class="brand-sub">/ DEPLOY</span></div>
-    <div class="bar-actions"><a href="/#projects">Portfolio</a></div>
+    <div class="bar-actions">
+      <a id="portfolio-link" href="/#projects" hidden>Portfolio</a>
+      <span id="connection" role="status" hidden>Connecting</span>
+      <button id="refresh" type="button" hidden>Refresh</button>
+    </div>
   </header>
   <main>
     <section class="hero">
       <div class="hero-content">
-        <p class="eyebrow" id="environment-label">INTERACTIVE DEMO</p>
+        <p class="eyebrow" id="environment-label"></p>
         <h1>Deployment Console<span>.</span></h1>
-        <p>Explore production workflows, rollback events, and server integrity using sample data.</p>
+        <p id="console-description"></p>
       </div>
-      <div class="demo-controls" aria-label="Demo scenarios">
+      <div class="demo-controls" aria-label="Demo scenarios" hidden>
         <p id="scenario-description" aria-live="polite">Choose a scenario to explore.</p>
         <button type="button" data-scenario="healthy" aria-pressed="true">Healthy</button>
         <button type="button" data-scenario="deploying" aria-pressed="false">Deploying</button>
@@ -34,7 +37,7 @@
       </div>
     </section>
     <section aria-labelledby="sites-heading">
-      <div class="section-heading"><h2 id="sites-heading">Sample sites</h2><p id="sample">Waiting for server status</p></div>
+      <div class="section-heading"><h2 id="sites-heading">Sites</h2><p id="sample">Waiting for status</p></div>
       <div class="sites" id="sites"></div>
     </section>
     <section aria-labelledby="security-heading">

@@ -9,7 +9,7 @@
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
     "preview": "vite preview",
-    "test": "vitest run",
+    "test": "vitest run && node scripts/check-deployment-console.mjs && node scripts/check-deployment-console.mjs --live",
     "test:watch": "vitest"
   },
   "dependencies": {
