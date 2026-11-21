@@ -324,6 +324,34 @@ function eventNavigation(index) {
   return navigation;
 }
 
+function renderSourceBreakdown(events, activeSource) {
+  const breakdown = byId("source-breakdown");
+  const focusedSource = breakdown.contains(document.activeElement) ? document.activeElement.dataset.source : undefined;
+  const counts = new Map();
+  for (const event of events) counts.set(event.site, (counts.get(event.site) ?? 0) + 1);
+  if (activeSource && !counts.has(activeSource)) counts.set(activeSource, 0);
+
+  const caption = document.createElement("span");
+  caption.textContent = "Events by source";
+  const sources = [["", events.length], ...[...counts].sort(([first], [second]) => first.localeCompare(second))];
+  const buttons = sources.map(([source, count]) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.dataset.source = source;
+    button.setAttribute("aria-pressed", String(source === activeSource));
+    button.textContent = `${source || "All sources"} · ${count}`;
+    button.addEventListener("click", () => {
+      byId("event-site").value = source;
+      resetEventRows();
+    });
+    return button;
+  });
+  breakdown.hidden = !counts.size;
+  breakdown.replaceChildren(caption, ...buttons);
+  if (focusedSource !== undefined) (buttons.find(button => button.dataset.source === focusedSource) ?? buttons[0])
+    .focus({ preventScroll: true });
+}
+
 function renderEvents() {
   const phrase = byId("event-query").value.trim().toLowerCase();
   const site = byId("event-site").value;
@@ -339,17 +367,18 @@ function renderEvents() {
   byId("pinned-events").setAttribute("aria-pressed", String(pinnedOnly));
   byId("pinned-count").textContent = pinnedEvents.size;
   const entries = pinnedOnly ? [...pinnedEvents.values()] : eventEntries;
-  const scopedEvents = entries.filter((event) => {
+  const eventsAcrossSources = entries.filter((event) => {
     const time = Date.parse(event.time);
     const inWindow = !bounds || (time >= bounds[0] && (selectedWindow === windowCount - 1 ? time <= bounds[1] : time < bounds[1]));
     const matchesRelated = !relatedFilter || relatedFilter.fields.some(field =>
       event.details?.[field] === relatedFilter.value);
     return (!hidePageLoads || event.component !== "Visits") && matchesRelated && inWindow && (!range || time >= sampledTime - range * hour) &&
-      (!site || event.site === site) &&
       (!category || (category === hostErrors ? hostCategories.has(event.component) && event.level === "error" : event.component === category)) &&
       (!phrase || [event.message, event.site, event.component, JSON.stringify(event.details || {})]
         .some((value) => value.toLowerCase().includes(phrase)));
   });
+  renderSourceBreakdown(eventsAcrossSources.filter(event => !severities.size || severities.has(event.level)), site);
+  const scopedEvents = site ? eventsAcrossSources.filter(event => event.site === site) : eventsAcrossSources;
   for (const button of document.querySelectorAll("[data-severity]")) {
     const level = button.dataset.severity;
     button.setAttribute("aria-pressed", String(severities.has(level)));
@@ -363,6 +392,9 @@ function renderEvents() {
   byId("event-count").textContent = matchingEvents.length
     ? `Showing ${rows.length} of ${matchingEvents.length} events`
     : pinnedOnly && !pinnedEvents.size ? "No pinned events" : "No matching events";
+  byId("reset-empty-results").hidden = Boolean(matchingEvents.length) ||
+    !(phrase || site || category || range || selectedWindow !== null || relatedFilter ||
+      severities.size || hidePageLoads || pinnedOnly);
   const showMore = byId("show-more");
   const nextCount = Math.min(pageSize(), matchingEvents.length - rows.length);
   showMore.hidden = nextCount === 0;
@@ -625,6 +657,11 @@ function renderEventSnapshot(events) {
   }
   sampledTime = Math.max(sampledTime, Date.parse(events.updated) || 0);
   eventEntries = events.entries;
+  const sourceSelect = byId("event-site");
+  const knownSources = new Set([...sourceSelect.options].map(option => option.value));
+  for (const source of new Set(eventEntries.map(event => event.site))) {
+    if (!knownSources.has(source)) sourceSelect.add(new Option(source, source));
+  }
   eventsUpdated = events.updated;
   const categorySelect = byId("event-category");
   for (const category of [...new Set(["SOC", "Auditd", "Fail2ban", "AIDE", "Deploy", ...eventEntries.map(event => event.component)])].sort()) {
@@ -710,6 +747,11 @@ function clearEventFilters() {
 byId("clear-filters").addEventListener("click", () => {
   clearEventFilters();
   resetEventRows();
+});
+byId("reset-empty-results").addEventListener("click", () => {
+  clearEventFilters();
+  resetEventRows();
+  byId("event-query").focus();
 });
 byId("clear-related").addEventListener("click", () => {
   relatedFilter = null;
