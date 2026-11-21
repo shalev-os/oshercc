@@ -259,3 +259,13 @@
   .selected-work__grid { grid-template-columns: 1fr; gap: 2.5rem; }
   .selected-work__feature { grid-template-columns: 1fr; }
 }
+
+@supports (grid-template-rows: subgrid) {
+  .selected-work__project:not(.selected-work__feature) {
+    display: grid;
+    grid-row: span 6;
+    grid-template-rows: subgrid;
+    row-gap: 0;
+    align-items: start;
+  }
+}
