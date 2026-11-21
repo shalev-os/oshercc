@@ -201,8 +201,10 @@
           <label>Order<select id="event-order"><option value="newest">Newest first</option><option value="oldest">Oldest first</option></select></label>
           <label>Events to show<select id="event-page-size"><option value="5">5</option><option value="10">10</option><option value="25">25</option><option value="50">50</option></select></label>
         </div>
+        <div class="log-shortcuts" id="source-breakdown" role="group" aria-label="Event counts by source" hidden></div>
         <div class="log-toolbar">
           <p class="log-count" id="event-count" role="status"></p>
+          <button type="button" id="reset-empty-results" hidden>Reset filters</button>
           <div class="log-display-controls">
             <button type="button" id="hide-page-loads" aria-pressed="false">Hide page loads</button>
             <button type="button" id="pinned-events" aria-pressed="false">Pinned only <span id="pinned-count">0</span></button>
