@@ -215,6 +215,16 @@
           <span>Related events: <strong id="related-value"></strong></span>
           <button type="button" id="clear-related">Remove related filter</button>
         </div>
+        <div class="related-filter investigation" id="investigation" role="group" aria-label="Investigation timeline" hidden>
+          <span>Investigating <strong id="investigation-anchor"></strong></span>
+          <label>Time before and after
+            <select id="investigation-radius">
+              <option value="5">5 minutes</option><option value="15" selected>15 minutes</option>
+              <option value="30">30 minutes</option><option value="60">1 hour</option>
+            </select>
+          </label>
+          <button type="button" id="close-investigation">End investigation</button>
+        </div>
         <ol id="events"></ol>
         <div class="log-pagination">
           <button type="button" id="show-more" hidden>Show more</button>
