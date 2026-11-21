@@ -28,18 +28,24 @@ let liveMode = false;
 const manualDeployments = new Map();
 
 function updateDeployControl(control) {
-  const request = manualDeployments.get(control.dataset.domain);
+  const request = manualDeployments.get(control.dataset.deployTarget);
   control.querySelector("button").disabled = Boolean(request?.pending || control.dataset.busy === "true");
   control.querySelector("[role=status]").textContent = request?.message || "";
 }
 
-async function deploySite(site, control) {
-  if (manualDeployments.get(site.domain)?.pending) return;
+function updateDeployControls(target) {
+  for (const control of document.querySelectorAll(".manual-deployment[data-deploy-target]")) {
+    if (control.dataset.deployTarget === target) updateDeployControl(control);
+  }
+}
+
+async function deploySite(target) {
+  if (manualDeployments.get(target)?.pending) return;
   const request = { pending: true, message: "Requesting deployment…" };
-  manualDeployments.set(site.domain, request);
-  updateDeployControl(control);
+  manualDeployments.set(target, request);
+  updateDeployControls(target);
   try {
-    const response = await fetch(`api/deploy/${encodeURIComponent(site.domain)}`, {
+    const response = await fetch(`api/deploy/${encodeURIComponent(target)}`, {
       method: "POST",
       headers: { "X-Osher-Deploy": "1" },
       redirect: "error",
@@ -51,9 +57,7 @@ async function deploySite(site, control) {
     request.message = "Could not confirm the deployment request.";
   } finally {
     request.pending = false;
-    const current = [...document.querySelectorAll(".manual-deployment")]
-      .find(element => element.dataset.domain === site.domain);
-    if (current) updateDeployControl(current);
+    updateDeployControls(target);
     refresh();
   }
 }
@@ -105,14 +109,15 @@ function renderSite(site) {
   } else {
     select(".workflow").remove();
   }
-  if (liveMode && !site.sharedTimer) {
+  if (liveMode) {
     const control = select(".manual-deployment");
     control.hidden = false;
-    control.dataset.domain = site.domain;
+    const target = site.sharedTimer ? "osher.cc" : site.domain;
+    control.dataset.deployTarget = target;
     control.dataset.busy = String(Boolean(site.deploying || site.building));
     const button = control.querySelector("button");
     button.setAttribute("aria-label", `Deploy ${site.domain} now`);
-    button.addEventListener("click", () => deploySite(site, control));
+    button.addEventListener("click", () => deploySite(target));
     updateDeployControl(control);
   }
   return card;

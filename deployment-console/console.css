@@ -85,6 +85,7 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-off
 .release{font-family:var(--mono)}
 .workflow{display:inline-block;text-decoration:none;font-size:.875rem}
 .manual-deployment{margin-top:.75rem;font-size:.875rem}
+.manual-deployment button{inline-size:8rem;block-size:2.75rem;padding:0}
 .manual-deployment button:disabled{cursor:default;opacity:.6}
 .manual-deployment p:empty{margin:0}
 .security-card h3{margin:0;font-size:1.25rem}
