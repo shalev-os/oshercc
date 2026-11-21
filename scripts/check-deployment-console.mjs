@@ -170,7 +170,7 @@ if (live) {
   assert.equal(byId("traffic-rows").rows.length, 3);
   const consoleTraffic = [...byId("traffic-rows").rows].find(row => row.cells[0].textContent === "console.example");
   assert.deepEqual([...consoleTraffic.cells].map(cell => cell.textContent), ["console.example", "1", "0 / 0", "9 ms"]);
-  assert.match(byId("sites").textContent, /Shared release schedule/);
+  assert.equal(byId("sites").lastElementChild.querySelector(".build-window-note").textContent, "The fallback timer checks for a validated release.");
   byId("event-category").value = "Visits";
   byId("event-category").dispatchEvent(new dom.window.Event("input"));
   assert.match(events()[0].querySelector(".event-context").textContent, /203\.0\.113\./);
