@@ -122,6 +122,7 @@ meter::-moz-meter-bar{background:var(--gold)}
 .event-context div{display:flex;gap:.3rem;min-width:0}
 .event-context dt{text-transform:capitalize}
 .event-context dd{margin:0;color:#deebfc}
+.copy-ip{padding:.12rem .42rem;border-radius:5px;font-size:.75rem;line-height:1.4}
 .event-json{grid-column:1/-1;min-width:0;max-height:18rem;overflow:auto;margin:0;padding:.8rem;border:1px solid var(--line);border-radius:8px;background:#0b111b;color:#d6e6fb;font:.85rem/1.6 var(--mono)}
 .activity time{color:var(--muted);font-size:.875rem;text-align:right}
 #show-more{margin:1rem 1.4rem}

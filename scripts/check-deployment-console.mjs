@@ -12,6 +12,10 @@ globalThis.document = dom.window.document;
 globalThis.location = dom.window.location;
 globalThis.Option = dom.window.Option;
 globalThis.window = dom.window;
+let copiedText = "";
+Object.defineProperty(dom.window.navigator, "clipboard", {
+  value: { writeText: async (value) => { copiedText = value; } },
+});
 
 const byId = (id) => document.getElementById(id);
 const events = () => [...byId("events").children];
@@ -107,6 +111,10 @@ if (live) {
   byId("event-category").value = "Visits";
   byId("event-category").dispatchEvent(new dom.window.Event("input"));
   assert.match(events()[0].querySelector(".event-context").textContent, /203\.0\.113\./);
+  events()[0].querySelector(".copy-ip").click();
+  await new Promise(setImmediate);
+  assert.equal(copiedText, "203.0.113.42");
+  assert.equal(events()[0].querySelector(".copy-ip").textContent, "Copied");
   byId("clear-filters").click();
   assert.equal(document.querySelectorAll("[data-range]").length, 6);
   document.querySelector('[data-range="48"]').click();
