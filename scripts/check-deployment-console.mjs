@@ -29,6 +29,10 @@ const snapshot = {
   sites: [site],
   security: { auditActive: true, integrity: "clean", integrityTimer: true, nextScan: time, lastScan: time },
   events: { entries: [event], updated: time },
+  host: {
+    uptime: 90000, load: [.42, .28, .15], cores: 2,
+    memory: { used: 90, total: 100 }, swap: { used: 0, total: 0 }, disk: { used: 45, total: 100 },
+  },
   sampled: time,
 };
 let requests = 0;
@@ -57,6 +61,9 @@ if (live) {
   assert.equal(byId("connection").textContent, "Live");
   assert.equal(byId("live").textContent, "1/1");
   assert.equal(byId("integrity-status").textContent, "Baseline matches");
+  assert.equal(byId("host-load").textContent, "0.42");
+  assert.equal(byId("memory-meter").dataset.pressure, "true");
+  assert.equal(byId("swap-meter").hidden, true);
   assert.match(events()[0].textContent, /Protected files match/);
   byId("json-panel").open = true;
   byId("json-panel").dispatchEvent(new dom.window.Event("toggle"));
@@ -70,6 +77,7 @@ if (live) {
   assert.equal(events().length, 7);
   scenario("deploying");
   assert.equal(byId("building").textContent, "1");
+  assert.equal(byId("host-load").textContent, "1.18");
   scenario("rollback");
   document.querySelector('[data-severity="error"]').click();
   assert.equal(events().length, 1);

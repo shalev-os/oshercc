@@ -57,6 +57,15 @@
         </article>
       </div>
     </section>
+    <section aria-labelledby="host-heading">
+      <div class="section-heading"><h2 id="host-heading">Host health</h2><p id="host-uptime"></p></div>
+      <div class="host-grid">
+        <article class="card host-card"><h3>CPU load</h3><strong id="host-load">—</strong><p id="host-cores">1-minute load average</p></article>
+        <article class="card host-card"><h3>Memory</h3><strong id="memory-amount">—</strong><meter id="memory-meter" aria-label="Memory utilization" max="100" value="0"></meter></article>
+        <article class="card host-card"><h3>Swap</h3><strong id="swap-amount">—</strong><meter id="swap-meter" aria-label="Swap utilization" max="100" value="0"></meter></article>
+        <article class="card host-card"><h3>Root disk</h3><strong id="disk-amount">—</strong><meter id="disk-meter" aria-label="Root disk utilization" max="100" value="0"></meter></article>
+      </div>
+    </section>
     <section class="activity" aria-labelledby="activity-heading">
       <div class="section-heading"><h2 id="activity-heading">Event log</h2><div class="event-heading-actions"><p id="event-update"></p><button type="button" id="export-events" disabled>Export JSON</button></div></div>
       <div class="log-panel">

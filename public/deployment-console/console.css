@@ -48,6 +48,14 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--gold);outline-offse
 .security-card h3{margin:0;font-size:1.25rem}
 .security-card p{color:var(--muted);line-height:1.5}
 .security-card dl{margin-bottom:0}
+.host-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1rem}
+.host-card{display:grid;align-content:start;gap:.6rem;padding:1rem}
+.host-card h3,.host-card p{margin:0;font-size:.875rem;color:var(--muted)}
+.host-card strong{font:700 clamp(.9rem,1.7vw,1.25rem) var(--mono);overflow-wrap:anywhere}
+.host-card meter{width:100%;height:.55rem}
+.host-card meter[data-pressure="true"]::-webkit-meter-optimum-value{background:#ffb4b4}
+.host-card meter[data-pressure="true"]::-moz-meter-bar{background:#ffb4b4}
+@media(max-width:760px){.host-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:.65rem}}
 .log-controls{display:grid;grid-template-columns:2fr 1fr 1fr;gap:.8rem;padding:1rem 1.4rem}
 .log-overview{display:grid;gap:.85rem;padding:1.15rem 1.4rem;border-bottom:1px solid var(--line);background:#111b29;border-radius:12px 12px 0 0}
 .log-overview-heading{display:flex;align-items:center;justify-content:space-between;gap:1rem}

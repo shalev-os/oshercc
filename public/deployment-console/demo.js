@@ -23,6 +23,13 @@ function scenarioData(mode) {
     site(catalog, "Workshop Catalogue", "WC", "84be103", -82),
   ];
   const security = { auditActive: true, integrity: "clean", integrityTimer: true, lastScan: time(-210), nextScan: time(1230) };
+  const mib = 1024 ** 2;
+  const host = {
+    uptime: 379200, load: [.24, .18, .15], cores: 2,
+    memory: { used: 370 * mib, total: 1024 * mib },
+    swap: { used: 92 * mib, total: 1024 * mib },
+    disk: { used: 4200 * mib, total: 8192 * mib },
+  };
   const entries = [
     event(-36, portfolio, "Deploy", "success", "Release 73da621 is serving traffic"),
     event(-36, portfolio, "Build", "success", "Built in 8.4s"),
@@ -34,6 +41,8 @@ function scenarioData(mode) {
   ];
   if (mode === "deploying") {
     Object.assign(sites[0], { deploying: true, lastCheck: time(-1), signal: time(-1) });
+    host.load[0] = 1.18;
+    host.memory.used = 691 * mib;
     entries.unshift(event(-1, portfolio, "Build", "info", "Building validated commit 3a91fc8"));
   }
   if (mode === "rollback") {
@@ -47,7 +56,7 @@ function scenarioData(mode) {
     Object.assign(security, { integrity: "changes", lastScan: time(-1) });
     entries.unshift(event(-1, "server", "AIDE", "warning", "Integrity baseline differences detected"));
   }
-  return { sampled: time(0), sites, security, events: { entries, updated: time(0) } };
+  return { sampled: time(0), sites, security, host, events: { entries, updated: time(0) } };
 }
 
 const controls = [...document.querySelectorAll("[data-scenario]")];

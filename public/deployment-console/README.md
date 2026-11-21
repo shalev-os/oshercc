@@ -4,6 +4,7 @@ An interactive demo of the private dashboard that monitors the Linux and Nginx d
 
 - Inspect release health, deployed commits, Actions signals, and fallback timer status.
 - Review Auditd and AIDE scan status.
+- Inspect host uptime, CPU load, memory, swap, and disk usage.
 - Inspect activity over 24 hours and filter the event log by time range, source, severity, or search. View, copy, or export the filtered JSON.
 - Switch between a healthy release, an active deployment, a rollback, and an integrity alert.
 
