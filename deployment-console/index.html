@@ -177,7 +177,13 @@
             <button type="button" data-severity="error" aria-pressed="false">Error <strong>0</strong></button>
           </div>
         </div>
-        <nav class="time-range-shortcuts" aria-label="Filter event log by time">
+        <div class="log-shortcuts" role="group" aria-label="Event filter presets">
+          <span>Quick filters</span>
+          <button type="button" data-event-preset="Deploy" data-level="error">Failed deployments</button>
+          <button type="button" data-event-preset="Fail2ban" data-level="warning">SSH blocks</button>
+          <button type="button" data-event-preset="AIDE" data-level="warning">Integrity warnings</button>
+        </div>
+        <nav class="log-shortcuts" aria-label="Filter event log by time">
           <span>Show events from</span>
           <button type="button" data-range="" aria-pressed="true">All retained</button>
           <button type="button" data-range="1" aria-pressed="false">1 hour</button>
@@ -187,13 +193,21 @@
           <button type="button" data-range="336" aria-pressed="false">14 days</button>
         </nav>
         <div class="log-controls">
-          <label>Search<input id="event-query" type="search" placeholder="Release, component, or message"></label>
+          <label><span>Search <kbd aria-hidden="true">/</kbd></span><input id="event-query" type="search" aria-keyshortcuts="/" placeholder="Release, component, or message"></label>
           <label>Source<select id="event-site"><option value="">All sources</option><option value="server">Server</option></select></label>
           <label>Category<select id="event-category"><option value="">All categories</option></select></label>
           <label>Time range<select id="event-range"><option value="">All retained events</option><option value="1">Last hour</option><option value="24">Last 24 hours</option><option value="48">Last 48 hours</option><option value="168">Last 7 days</option><option value="336">Last 14 days</option></select></label>
+          <label>Order<select id="event-order"><option value="newest">Newest first</option><option value="oldest">Oldest first</option></select></label>
           <label>Events to show<select id="event-page-size"><option value="5">5</option><option value="10">10</option><option value="25">25</option><option value="50">50</option></select></label>
         </div>
-        <p class="log-count" id="event-count" role="status"></p>
+        <div class="log-toolbar">
+          <p class="log-count" id="event-count" role="status"></p>
+          <button type="button" id="event-utc" aria-pressed="false">UTC timestamps</button>
+        </div>
+        <div class="related-filter" id="related-filter" hidden>
+          <span>Related events: <strong id="related-value"></strong></span>
+          <button type="button" id="clear-related">Remove related filter</button>
+        </div>
         <ol id="events"></ol>
         <div class="log-pagination">
           <button type="button" id="show-more" hidden>Show more</button>

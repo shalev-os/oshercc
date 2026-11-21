@@ -3,8 +3,12 @@ const dateFormat = new Intl.DateTimeFormat(undefined, {
   dateStyle: "medium", timeStyle: "short",
 });
 const timestamp = (value) => value ? dateFormat.format(new Date(value)) : "—";
-const logTime = new Intl.DateTimeFormat(undefined, {
+const logTimeOptions = {
   month: "short", day: "numeric", hour: "numeric", minute: "2-digit", second: "2-digit",
+};
+const logTime = new Intl.DateTimeFormat(undefined, logTimeOptions);
+const logTimeUtc = new Intl.DateTimeFormat(undefined, {
+  ...logTimeOptions, timeZone: "UTC", timeZoneName: "short",
 });
 const chartTime = new Intl.DateTimeFormat(undefined, { hour: "numeric", minute: "2-digit" });
 const hour = 3600000;
@@ -20,6 +24,8 @@ let matchingEvents = [];
 let sampledTime = Date.now();
 let clockOffset = 0;
 let severity = "";
+let relatedFilter = null;
+const ipFields = ["clientIp", "sourceIp"];
 const hostCategories = new Map([["Systemd", "host-systemd-count"], ["Host services", "host-service-count"], ["Kernel", "host-kernel-count"]]);
 const hostErrors = "Host errors";
 let selectedWindow = null;
@@ -231,7 +237,21 @@ function eventContext(event) {
     const description = document.createElement("dd");
     description.textContent = value !== null && typeof value === "object" ? JSON.stringify(value) : String(value);
     group.append(title, description);
-    if ((key === "clientIp" || key === "sourceIp") && typeof value === "string") {
+    const isIp = ipFields.includes(key);
+    if ((isIp || key === "commit") && typeof value === "string" && value.trim()) {
+      const related = document.createElement("button");
+      related.type = "button";
+      related.textContent = "Find related";
+      related.setAttribute("aria-label", `Find events for ${isIp ? "IP" : "commit"} ${value}`);
+      related.addEventListener("click", () => {
+        clearEventFilters();
+        relatedFilter = { fields: isIp ? ipFields : ["commit"], label: isIp ? "IP" : "Commit", value };
+        resetEventRows();
+        byId("clear-related").focus();
+      });
+      group.append(related);
+    }
+    if (isIp && typeof value === "string") {
       const copy = document.createElement("button");
       copy.type = "button";
       copy.className = "copy-ip";
@@ -278,10 +298,14 @@ function renderEvents() {
     button.setAttribute("aria-pressed", String(button.dataset.range === byId("event-range").value));
   }
   const window = selectedWindow === null ? null : windowBounds(selectedWindow);
+  byId("related-filter").hidden = !relatedFilter;
+  byId("related-value").textContent = relatedFilter ? `${relatedFilter.label} ${relatedFilter.value}` : "";
   const scopedEvents = eventEntries.filter((event) => {
     const time = Date.parse(event.time);
     const inWindow = !window || (time >= window[0] && (selectedWindow === windowCount - 1 ? time <= window[1] : time < window[1]));
-    return inWindow && (!range || time >= sampledTime - range * hour) &&
+    const matchesRelated = !relatedFilter || relatedFilter.fields.some(field =>
+      event.details?.[field] === relatedFilter.value);
+    return matchesRelated && inWindow && (!range || time >= sampledTime - range * hour) &&
       (!site || event.site === site) &&
       (!category || (category === hostErrors ? hostCategories.has(event.component) && event.level === "error" : event.component === category)) &&
       (!phrase || [event.message, event.site, event.component, JSON.stringify(event.details || {})]
@@ -293,6 +317,8 @@ function renderEvents() {
     button.querySelector("strong").textContent = scopedEvents.filter((event) => event.level === level).length;
   }
   matchingEvents = scopedEvents.filter((event) => !severity || event.level === severity);
+  const direction = byId("event-order").value === "oldest" ? 1 : -1;
+  matchingEvents.sort((first, second) => direction * (Date.parse(first.time) - Date.parse(second.time)));
   renderChart();
   const rows = matchingEvents.slice(0, visibleCount);
   byId("event-count").textContent = matchingEvents.length
@@ -306,6 +332,7 @@ function renderEvents() {
   byId("export-events").disabled = !matchingEvents.length;
   byId("export-csv").disabled = !matchingEvents.length;
   if (byId("json-panel").open) byId("event-json").textContent = filteredJson();
+  const timeFormat = byId("event-utc").getAttribute("aria-pressed") === "true" ? logTimeUtc : logTime;
   const list = byId("events");
   const focused = list.contains(document.activeElement) ? document.activeElement.dataset.event : undefined;
   list.replaceChildren(...rows.map((event) => {
@@ -332,7 +359,7 @@ function renderEvents() {
     detail.append(inspect, source);
     const time = document.createElement("time");
     time.dateTime = event.time;
-    time.textContent = logTime.format(new Date(event.time));
+    time.textContent = timeFormat.format(new Date(event.time));
     item.append(badge, detail, time);
     if (inspectedEvent === key) {
       if (event.details) detail.append(eventContext(event));
@@ -510,7 +537,7 @@ function renderEventSnapshot(events) {
   eventEntries = events.entries;
   eventsUpdated = events.updated;
   const categorySelect = byId("event-category");
-  for (const category of [...new Set(["SOC", "Auditd", "Fail2ban", "AIDE", ...eventEntries.map(event => event.component)])].sort()) {
+  for (const category of [...new Set(["SOC", "Auditd", "Fail2ban", "AIDE", "Deploy", ...eventEntries.map(event => event.component)])].sort()) {
     if (![...categorySelect.options].some(option => option.value === category)) {
       categorySelect.add(new Option(category, category));
     }
@@ -546,16 +573,15 @@ async function refresh() {
   }
 }
 
-for (const button of document.querySelectorAll("[data-soc-view]")) {
+for (const button of document.querySelectorAll("[data-soc-view], [data-event-preset]")) {
   button.addEventListener("click", () => {
-    byId("event-query").value = "";
-    byId("event-site").value = "";
+    clearEventFilters();
     byId("event-range").value = "24";
-    byId("event-category").value = button.dataset.socView;
-    severity = "";
+    byId("event-category").value = button.dataset.socView ?? button.dataset.eventPreset;
+    severity = button.dataset.level ?? "";
     selectedWindow = null;
     resetEventRows();
-    byId("activity-heading").scrollIntoView?.();
+    if (button.dataset.socView) byId("activity-heading").scrollIntoView?.();
   });
 }
 
@@ -581,14 +607,35 @@ for (const button of document.querySelectorAll("[data-severity]")) {
     resetEventRows();
   });
 }
-byId("clear-filters").addEventListener("click", () => {
+function clearEventFilters() {
   for (const id of ["event-query", "event-site", "event-category", "event-range"]) byId(id).value = "";
   severity = "";
   selectedWindow = null;
-  updateChartSelection();
+  relatedFilter = null;
+}
+
+byId("clear-filters").addEventListener("click", () => {
+  clearEventFilters();
   resetEventRows();
 });
+byId("clear-related").addEventListener("click", () => {
+  relatedFilter = null;
+  resetEventRows();
+  byId("event-query").focus();
+});
+byId("event-utc").addEventListener("click", ({ currentTarget }) => {
+  currentTarget.setAttribute("aria-pressed", String(currentTarget.getAttribute("aria-pressed") !== "true"));
+  renderEvents();
+});
+byId("event-order").addEventListener("change", resetEventRows);
 eventPageSize.addEventListener("change", resetEventRows);
+document.addEventListener("keydown", (event) => {
+  if (event.key !== "/" || event.defaultPrevented || event.isComposing ||
+      event.altKey || event.ctrlKey || event.metaKey ||
+      event.target.closest?.("input, textarea, select, [contenteditable]")) return;
+  event.preventDefault();
+  byId("event-query").focus();
+});
 byId("show-less").addEventListener("click", () => {
   resetEventRows();
   byId("show-more").focus();
@@ -709,15 +756,13 @@ export function startLive() {
       const { query = "", category = "", level = "" } = hostView
         ? { category: hostView === "errors" ? hostErrors : hostView }
         : views[button.dataset.liveView];
+      clearEventFilters();
       byId("event-query").value = query;
-      byId("event-site").value = "";
       byId("event-range").value = hostView ? "24" : "";
       const select = byId("event-category");
       if (![...select.options].some(option => option.value === category)) select.add(new Option(category, category));
       select.value = category;
       severity = level;
-      selectedWindow = null;
-      updateChartSelection();
       resetEventRows();
       byId("activity-heading").scrollIntoView?.({ block: "start" });
     });
