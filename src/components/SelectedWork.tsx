@@ -1,4 +1,5 @@
 import { ArrowUpRight, Check, GitBranch, PackageCheck, Server } from "lucide-react";
+import consolePreview from "@/assets/deployment-console-preview";
 import mazonPreview from "@/assets/mazonhaosher-project.jpg";
 import "./selected-work.css";
 
@@ -76,16 +77,9 @@ export default function SelectedWork() {
           </article>
         ))}
         <article className="selected-work__project selected-work__feature">
-          <div className="selected-work__visual selected-work__console-art" aria-hidden="true">
-            <div className="selected-work__console-bar"><span>OSHER / DEPLOY</span><span>● DEMO</span></div>
-            <p>Deployment Console<span>.</span></p>
-            <div className="selected-work__console-metrics">
-              <div><strong>2/2</strong><span>Sites online</span></div>
-              <div><strong>2/2</strong><span>Fallback timers</span></div>
-            </div>
-            <div className="selected-work__console-log"><strong>SUCCESS</strong><span>Release 73da621 is serving traffic</span></div>
-            <div className="selected-work__console-log"><strong>INFO</strong><span>Authenticated Actions signal received</span></div>
-          </div>
+          <a className="selected-work__visual selected-work__console-preview" href="/deployment-console/" aria-label="Open the interactive Deployment Console demo">
+            <img src={consolePreview} alt="Deployment Console demo with site health metrics and scenario controls" loading="lazy" decoding="async" width={1200} height={675} />
+          </a>
           <div className="selected-work__feature-copy">
             <p className="selected-work__label selected-work__kind">03 <span aria-hidden="true">/</span> Infrastructure · Observability</p>
             <h3>Deployment Console</h3>
