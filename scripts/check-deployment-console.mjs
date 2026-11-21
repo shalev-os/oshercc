@@ -26,6 +26,7 @@ const site = {
 const event = {
   site: "server", component: "AIDE", time, level: "success",
   message: "Protected files match the integrity baseline",
+  details: { baseline: "matched", outcome: "verified" },
 };
 const snapshot = {
   sites: [site],
@@ -95,7 +96,9 @@ if (live) {
   assert.equal(requests, 0);
   assert.equal(byId("audit-status").textContent, "Active");
   assert.equal(byId("integrity-status").textContent, "Baseline matches");
-  assert.equal(byId("live").textContent, "2/2");
+  assert.equal(byId("live").textContent, "3/3");
+  assert.equal(byId("fallback").textContent, "2/2");
+  assert.match(byId("sites").textContent, /Shared release schedule/);
   byId("activity-chart").children[0].click();
   assert.equal(events().length, 0);
   byId("clear-filters").click();
@@ -112,6 +115,8 @@ if (live) {
   const matching = JSON.parse(byId("event-json").textContent);
   assert.equal(matching.length, 1);
   assert.match(matching[0].message, /Previous release restored/);
+  assert.equal(matching[0].details.rollback, "restored");
+  assert.match(events()[0].querySelector(".event-context").textContent, /health checkfailed/i);
   events()[0].querySelector(".event-inspect").click();
   assert.deepEqual(JSON.parse(events()[0].querySelector(".event-json").textContent), matching[0]);
   assert.equal(byId("export-csv").disabled, false);
