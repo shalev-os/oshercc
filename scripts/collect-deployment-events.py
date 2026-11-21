@@ -32,6 +32,7 @@ JOURNAL_FIELDS = {
     "RESULT": "result",
     "JOB_TYPE": "jobType",
     "JOB_RESULT": "jobResult",
+    "_BOOT_ID": "bootId",
 }
 
 UNIT_EVENTS = (
@@ -128,6 +129,67 @@ def journal_details(record, unit):
     return details
 
 
+def host_events():
+    command = [
+        "journalctl", "--no-pager", "--quiet", f"--since={RETENTION_DAYS} days ago",
+        "--output=json", "--output-fields=" + ",".join(("UNIT", "_SYSTEMD_UNIT", "MESSAGE", *JOURNAL_FIELDS)),
+    ]
+    events = []
+    queries = (
+        ("Systemd", ["--lines=2000", "_PID=1"]),
+        ("Kernel", ["--lines=500", "--priority=warning", "_TRANSPORT=kernel"]),
+        ("Host services", ["--lines=1000", "--priority=warning"]),
+    )
+    for component, filters in queries:
+        try:
+            output = subprocess.check_output([*command, *filters], text=True, timeout=2)
+        except (OSError, subprocess.SubprocessError):
+            continue
+        for line in output.splitlines():
+            record = json.loads(line)
+            unit = record.get("UNIT") or record.get("_SYSTEMD_UNIT")
+            if component == "Kernel":
+                if not isinstance(record.get("MESSAGE"), str):
+                    continue
+                text = kernel_summary(record["MESSAGE"])
+                unit = "kernel"
+            elif not isinstance(unit, str) or unit in UNIT_TYPES or not re.fullmatch(r"[a-zA-Z0-9_.@:-]{1,200}\.service", unit):
+                continue
+            elif component == "Systemd":
+                action = record.get("JOB_TYPE")
+                result = record.get("JOB_RESULT")
+                if action not in ("start", "stop", "restart", "reload") or not isinstance(result, str):
+                    continue
+                text = f"{unit} {action} completed" if result == "done" else f"{unit} {action} failed"
+            else:
+                if record.get("_PID") == "1" or record.get("PRIORITY") not in ("0", "1", "2", "3", "4"):
+                    continue
+                text = f"{unit} reported a journal alert"
+            context = journal_details(record, unit)
+            date = datetime.fromtimestamp(context["timestampMicros"] / 1_000_000, timezone.utc)
+            if component == "Systemd":
+                level = "success" if result == "done" else "error"
+            else:
+                level = "warning" if context.get("priority") == 4 else "error"
+            events.append(dict(time=date.isoformat(), site="server", component=component,
+                               level=level, message=text, details=context))
+    return events
+
+
+def kernel_summary(message):
+    message = message.lower()
+    for pattern, summary in (
+        (r"out of memory|oom.kill|oom-killer", "Kernel reported an out-of-memory condition"),
+        (r"i/o error|filesystem error|read-only file system", "Kernel reported a storage error"),
+        (r"soft lockup|hard lockup|watchdog", "Kernel reported a watchdog or CPU stall event"),
+        (r"thermal|overheating", "Kernel reported a thermal event"),
+        (r"segfault|general protection fault", "Kernel reported a process fault"),
+    ):
+        if re.search(pattern, message):
+            return summary
+    return "Kernel reported a journal alert"
+
+
 def collect():
     command = [
         "journalctl", "--no-pager", "--quiet", "--since=14 days ago", "--lines=1600",
@@ -151,6 +213,7 @@ def collect():
             date = datetime.fromtimestamp(context["timestampMicros"] / 1_000_000, timezone.utc)
             events.append(dict(time=date.isoformat(), site=site, component=component,
                                level=level, message=text, details=context))
+    events.extend(host_events())
     events.extend(audit_events())
     events.extend(visit_events())
     return events
@@ -286,8 +349,10 @@ def retain_events(recent):
             unique[key] = event
     ordered = sorted(unique.values(), key=lambda event: event["time"], reverse=True)
     visits = [event for event in ordered if event["component"] == "Visits"][:MAX_PER_GROUP]
-    operational = [event for event in ordered if event["component"] != "Visits"][:MAX_PER_GROUP]
-    return sorted([*visits, *operational], key=lambda event: event["time"], reverse=True)
+    host_components = {"Systemd", "Kernel", "Host services"}
+    host = [event for event in ordered if event["component"] in host_components][:MAX_PER_GROUP]
+    operational = [event for event in ordered if event["component"] not in host_components | {"Visits"}][:MAX_PER_GROUP]
+    return sorted([*visits, *operational, *host], key=lambda event: event["time"], reverse=True)
 
 
 def main():
