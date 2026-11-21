@@ -165,10 +165,28 @@ function eventContext(event) {
   for (const [key, value] of Object.entries(event.details || {})) {
     const group = document.createElement("div");
     const title = document.createElement("dt");
-    title.textContent = key.replace(/([a-z])([A-Z])/g, "$1 $2");
+    title.textContent = ({ clientIp: "Client IP", sourceIp: "Source IP" })[key] || key.replace(/([a-z])([A-Z])/g, "$1 $2");
     const description = document.createElement("dd");
     description.textContent = key === "commit" ? value.slice(0, 12) : String(value);
     group.append(title, description);
+    if ((key === "clientIp" || key === "sourceIp") && typeof value === "string") {
+      const copy = document.createElement("button");
+      copy.type = "button";
+      copy.className = "copy-ip";
+      copy.textContent = "Copy";
+      copy.setAttribute("aria-label", "Copy IP address");
+      copy.addEventListener("click", async () => {
+        try {
+          await navigator.clipboard.writeText(value);
+          copy.textContent = "Copied";
+          copy.setAttribute("aria-label", "IP address copied");
+        } catch {
+          copy.textContent = "Unavailable";
+          copy.setAttribute("aria-label", "Clipboard unavailable");
+        }
+      });
+      group.append(copy);
+    }
     context.append(group);
   }
   return context;
