@@ -101,9 +101,6 @@ function renderSite(site) {
   select(".build-countdown").textContent = site.timer ? "Awaiting schedule" : "Paused";
   select(".last-timer").textContent = timestamp(site.lastTimer);
   select(".build-state").textContent = site.building ? "Building now" : site.deploying ? "Deploying" : "Idle";
-  if (site.sharedTimer) {
-    select(".build-window-note").textContent = "Shared release schedule with the portfolio.";
-  }
   if (site.repo) {
     select(".workflow").href = "https://github.com/" + site.repo + "/actions";
   } else {
