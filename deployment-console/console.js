@@ -190,7 +190,8 @@ function renderEvents() {
     return inWindow && (!range || time >= sampledTime - range * hour) &&
       (!site || event.site === site) &&
       (!category || event.component === category) &&
-      (!phrase || [event.message, event.site, event.component].some((value) => value.toLowerCase().includes(phrase)));
+      (!phrase || [event.message, event.site, event.component, JSON.stringify(event.details || {})]
+        .some((value) => value.toLowerCase().includes(phrase)));
   });
   for (const button of document.querySelectorAll("[data-severity]")) {
     const level = button.dataset.severity;
@@ -420,5 +421,29 @@ export function startRefresh(update) {
 }
 
 export function startLive() {
+  byId("live-controls").hidden = false;
+  const views = {
+    overview: {},
+    builds: { category: "Build" },
+    rollbacks: { query: "rollback" },
+    integrity: { category: "AIDE", level: "warning" },
+    visits: { category: "Visits" },
+  };
+  for (const button of byId("live-controls").querySelectorAll("button")) {
+    button.addEventListener("click", () => {
+      const { query = "", category = "", level = "" } = views[button.dataset.liveView];
+      byId("event-query").value = query;
+      byId("event-site").value = "";
+      byId("event-range").value = "";
+      const select = byId("event-category");
+      if (![...select.options].some(option => option.value === category)) select.add(new Option(category, category));
+      select.value = category;
+      severity = level;
+      selectedWindow = null;
+      updateChartSelection();
+      resetEventRows();
+      byId("activity-heading").scrollIntoView?.({ block: "start" });
+    });
+  }
   startRefresh(refresh);
 }

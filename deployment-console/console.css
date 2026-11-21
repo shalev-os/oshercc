@@ -100,9 +100,9 @@ meter::-moz-meter-bar{background:var(--gold)}
 .log-count{font-size:.875rem;color:var(--muted);margin:0;padding:0 1.4rem .75rem}
 .event-heading-actions{display:flex;align-items:center;gap:.8rem;flex-wrap:wrap}
 .event-heading-actions button{font-size:.875rem}
-.demo-controls{display:flex;flex-wrap:wrap;align-items:center;gap:.55rem;margin:1.25rem 0 0}
-.demo-controls p{flex-basis:100%;margin:0 0 .2rem;color:var(--muted)}
-.demo-controls button[aria-pressed="true"]{border-color:var(--gold);color:var(--gold);background:#29231d}
+.quick-controls{display:flex;flex-wrap:wrap;align-items:center;gap:.55rem;margin:1.25rem 0 0}
+.quick-controls p{flex-basis:100%;margin:0 0 .2rem;color:var(--muted)}
+.quick-controls button[aria-pressed="true"]{border-color:var(--gold);color:var(--gold);background:#29231d}
 .activity ol{list-style:none;padding:0;margin:0}
 .activity li{display:grid;grid-template-columns:8ch minmax(0,1fr) auto;align-items:start;gap:1rem;padding:.75rem 1.4rem;border-top:1px solid var(--line)}
 .event-level{font:700 .75rem var(--mono);text-transform:uppercase;color:#a6c8ff;margin-top:.15rem}
