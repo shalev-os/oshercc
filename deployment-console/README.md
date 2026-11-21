@@ -5,7 +5,7 @@ An interactive demo of the private dashboard that monitors the Linux and Nginx d
 - Inspect release health, deployed commits, Actions signals, and fallback timer status.
 - Track the deployment console itself alongside the public websites.
 - See the next scheduled fallback check with a live countdown and actual build state.
-- Review Auditd, AIDE file integrity, and Fail2ban SSH protection.
+- Review sensor health and the last 24 hours of SSH blocks, configuration changes, and integrity warnings. The server correlates Fail2ban blocks when three or more distinct SSH sources are blocked in the same 15-minute UTC window.
 - Inspect host uptime, CPU load, memory, swap, and disk usage.
 - Set the refresh rate to 5–60 seconds or 10–60 minutes.
 - Filter the event log with visible time shortcuts for 1 hour, 24 hours, 48 hours, 7 days, 14 days, or all retained events, or use source, severity, and search filters. The six-bucket activity chart and severity counts follow the active filters. Read structured event details, open each event as JSON, or export the filtered set as JSON or Excel-compatible CSV.
