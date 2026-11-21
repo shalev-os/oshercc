@@ -15,6 +15,7 @@
       <span id="connection" role="status" hidden>Connecting</span>
       <label class="refresh-setting">Refresh rate
         <select id="refresh-rate">
+          <option value="0">Paused</option>
           <optgroup label="Seconds">
             <option value="5">5 sec</option>
             <option value="10" selected>10 sec</option>
@@ -64,6 +65,13 @@
         <div><strong id="fallback">–</strong><span>Fallback timers</span></div>
       </div>
     </section>
+    <section aria-labelledby="attention-heading">
+      <div class="section-heading"><h2 id="attention-heading">Needs attention</h2></div>
+      <div class="card health-summary">
+        <p id="attention-status" role="status">Waiting for status data</p>
+        <ul id="attention-items" hidden></ul>
+      </div>
+    </section>
     <section aria-labelledby="sites-heading">
       <div class="section-heading"><h2 id="sites-heading">Sites</h2><p id="sample"></p></div>
       <div class="sites production-grid" id="sites"></div>
@@ -104,6 +112,18 @@
         <article class="card host-card"><h3>Memory</h3><strong id="memory-amount">—</strong><meter id="memory-meter" aria-label="Memory utilization" max="100" value="0"></meter></article>
         <article class="card host-card"><h3>Swap</h3><strong id="swap-amount">—</strong><meter id="swap-meter" aria-label="Swap utilization" max="100" value="0"></meter></article>
         <article class="card host-card"><h3>Root disk</h3><strong id="disk-amount">—</strong><meter id="disk-meter" aria-label="Root disk utilization" max="100" value="0"></meter></article>
+      </div>
+    </section>
+    <section aria-labelledby="traffic-heading">
+      <div class="section-heading"><h2 id="traffic-heading">Origin traffic</h2><p>Last 24 hours of retained page loads</p></div>
+      <div class="card health-summary">
+        <p id="traffic-empty" role="status">Waiting for event data</p>
+        <div class="traffic-table" id="traffic-table" hidden>
+          <table aria-labelledby="traffic-heading">
+            <thead><tr><th scope="col">Site</th><th scope="col">Page loads</th><th scope="col">HTTP 4xx / 5xx</th><th scope="col"><abbr title="95th percentile of origin response times">P95 response</abbr></th></tr></thead>
+            <tbody id="traffic-rows"></tbody>
+          </table>
+        </div>
       </div>
     </section>
     <section class="activity" aria-labelledby="activity-heading">
