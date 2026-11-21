@@ -154,6 +154,28 @@ function renderEvents() {
   }));
 }
 
+function formatBytes(bytes) {
+  const gib = 1024 ** 3;
+  return bytes >= gib ? (bytes / gib).toFixed(1) + " GiB" : Math.round(bytes / 1024 ** 2) + " MiB";
+}
+
+function renderHost(host) {
+  if (!host) return;
+  const hours = Math.floor(host.uptime / 3600);
+  const days = Math.floor(hours / 24);
+  byId("host-uptime").textContent = days ? `Uptime ${days}d ${hours % 24}h` : `Uptime ${hours}h ${Math.floor(host.uptime / 60) % 60}m`;
+  byId("host-load").textContent = host.load[0].toFixed(2);
+  byId("host-cores").textContent = `1-minute average · ${host.cores} CPU${host.cores === 1 ? "" : "s"}`;
+  for (const resource of ["memory", "swap", "disk"]) {
+    const { used, total } = host[resource];
+    const meter = byId(resource + "-meter");
+    meter.hidden = total === 0;
+    meter.value = total ? Math.round(100 * used / total) : 0;
+    meter.dataset.pressure = String(meter.value >= 85);
+    byId(resource + "-amount").textContent = total ? formatBytes(used) + " / " + formatBytes(total) : "Unconfigured";
+  }
+}
+
 export function renderStatus(data) {
   const { sites, security } = data;
   byId("live").textContent = sites.filter((site) => site.online).length + "/" + sites.length;
@@ -175,6 +197,7 @@ export function renderStatus(data) {
   byId("integrity-status").dataset.tone = tone;
   byId("last-scan").textContent = timestamp(security.lastScan);
   byId("next-scan").textContent = security.integrityTimer ? timestamp(security.nextScan) : "Timer inactive";
+  renderHost(data.host);
   const sourceSelect = byId("event-site");
   for (const site of sites) {
     if (![...sourceSelect.options].some((option) => option.value === site.domain)) {
@@ -253,7 +276,7 @@ byId("copy-json").addEventListener("click", async () => {
     byId("copy-status").textContent = "Clipboard unavailable. Select the JSON to copy it.";
   }
 });
-if (byId("refresh")) {
+export function startLive() {
   byId("refresh").addEventListener("click", refresh);
   setInterval(refresh, 15000);
   refresh();
