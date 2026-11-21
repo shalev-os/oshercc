@@ -39,6 +39,15 @@ h1 span{color:var(--gold)}
 .badge[data-tone="warn"]{color:var(--gold);background:#30281c;border-color:#5b4a33}
 .badge[data-tone="error"]{color:#ffb4b4;background:#351d24;border-color:#633440}
 .card h3{margin:1rem 0 .25rem;font-size:1.55rem}
+.build-window{display:grid;gap:.55rem;margin-top:1rem;padding:.8rem;border:1px solid var(--line);border-radius:8px;background:#0d1521}
+.build-window-head,.build-window-time{display:flex;align-items:baseline;justify-content:space-between;gap:.35rem .75rem;flex-wrap:wrap}
+.build-window-head{font-size:.875rem;color:var(--muted)}
+.timer-state{color:var(--green)}
+.timer-state[data-running="false"]{color:var(--gold)}
+.build-countdown{font:700 1.15rem var(--mono);color:var(--gold)}
+.next-build,.build-window-note{color:var(--muted);font-size:.875rem}
+.build-window-note{margin:0}
+.build-progress{width:100%;height:.55rem}
 .site-url{font-size:.9rem;color:var(--muted);overflow-wrap:anywhere}
 .card dl{margin:1.25rem 0;display:grid}
 .card dl div{display:flex;justify-content:space-between;gap:1rem;padding:.65rem 0;border-top:1px solid var(--line);font-size:.875rem}
@@ -51,6 +60,8 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--gold);outline-offse
 .security-card h3{margin:0;font-size:1.25rem}
 .security-card p{color:var(--muted);line-height:1.5}
 .security-card dl{margin-bottom:0}
+.security-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1rem}
+@media(max-width:760px){.security-grid{grid-template-columns:1fr}}
 .host-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1rem}
 .host-card{display:grid;align-content:start;gap:.6rem;padding:1rem}
 .host-card h3,.host-card p{margin:0;font-size:.875rem;color:var(--muted)}
@@ -98,6 +109,9 @@ meter::-moz-meter-bar{background:var(--gold)}
 .event-level[data-level="error"]{color:#ffb4b4}
 .event-detail{min-width:0;overflow-wrap:anywhere}
 .event-detail small{display:block;color:var(--muted);font-size:.875rem;margin-top:.15rem}
+.event-inspect{padding:0;border:0;border-radius:0;background:none;color:inherit;text-align:left;text-decoration:underline;text-underline-offset:.22rem}
+.event-inspect:hover{color:var(--gold)}
+.event-json{grid-column:1/-1;min-width:0;max-height:18rem;overflow:auto;margin:0;padding:.8rem;border:1px solid var(--line);border-radius:8px;background:#0b111b;color:#d6e6fb;font:.85rem/1.6 var(--mono)}
 .activity time{color:var(--muted);font-size:.875rem;text-align:right}
 #show-more{margin:1rem 1.4rem}
 .json-panel{border-top:1px solid var(--line);padding:1rem 1.4rem}

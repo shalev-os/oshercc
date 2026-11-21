@@ -1,6 +1,13 @@
 import { renderStatus, startRefresh } from "./console.js";
 
 const time = (minutes) => new Date(Date.now() + minutes * 60000).toISOString();
+const demoStarted = Date.now();
+const timerCycle = 300000;
+const sampleTimer = (offset) => {
+  const elapsed = (Date.now() - demoStarted + offset) % timerCycle;
+  const last = Date.now() - elapsed;
+  return { lastTimer: new Date(last).toISOString(), nextBuild: new Date(last + timerCycle).toISOString() };
+};
 const site = (domain, name, mark, release, minutes) => ({
   domain, name, mark, release, published: time(minutes), lastCheck: time(-2),
   signal: time(minutes - 1), online: true, deploying: false, failed: false, timer: true,
@@ -19,10 +26,13 @@ const scenarios = {
 
 function scenarioData(mode) {
   const sites = [
-    site(portfolio, "Studio Portfolio", "SP", "73da621", -36),
-    site(catalog, "Workshop Catalogue", "WC", "84be103", -82),
+    { ...site(portfolio, "Studio Portfolio", "SP", "73da621", -36), ...sampleTimer(90000) },
+    { ...site(catalog, "Workshop Catalogue", "WC", "84be103", -82), ...sampleTimer(165000) },
   ];
-  const security = { auditActive: true, integrity: "clean", integrityTimer: true, lastScan: time(-210), nextScan: time(1230) };
+  const security = {
+    auditActive: true, audit: { watches: 8, lost: 0 }, integrity: "clean", integrityTimer: true,
+    lastScan: time(-210), nextScan: time(1230), fail2ban: true, ssh: { banned: 1, failed: 8 },
+  };
   const mib = 1024 ** 2;
   const host = {
     uptime: 379200, load: [.24, .18, .15], cores: 2,
@@ -37,10 +47,12 @@ function scenarioData(mode) {
     event(-37, portfolio, "GitHub Actions", "info", "Authenticated signal received"),
     event(-82, catalog, "Deploy", "success", "Release 84be103 is serving traffic"),
     event(-83, catalog, "Build", "success", "Built in 11.2s"),
+    event(-105, "server", "Fail2ban", "warning", "Fail2ban blocked an SSH source."),
+    event(-140, "server", "Auditd", "info", "Web server configuration changed"),
     event(-210, "server", "AIDE", "success", "Protected files match the integrity baseline"),
   ];
   if (mode === "deploying") {
-    Object.assign(sites[0], { deploying: true, lastCheck: time(-1), signal: time(-1) });
+    Object.assign(sites[0], { deploying: true, building: true, lastCheck: time(-1), signal: time(-1) });
     host.load[0] = 1.18;
     host.memory.used = 691 * mib;
     entries.unshift(event(-1, portfolio, "Build", "info", "Building validated commit 3a91fc8"));
