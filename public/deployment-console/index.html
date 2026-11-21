@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="index, follow">
+  <title>Deployment Console Demo · Osher</title>
+  <link rel="stylesheet" href="console.css">
+  <script type="module" src="demo.js"></script>
+</head>
+<body>
+  <header class="bar">
+    <div class="brand"><span class="mark" aria-hidden="true">O</span> OSHER <span class="brand-sub">/ DEPLOY</span></div>
+    <div class="bar-actions"><a href="/#projects">Portfolio</a></div>
+  </header>
+  <main>
+    <section class="hero">
+      <div class="hero-content">
+        <p class="eyebrow" id="environment-label">INTERACTIVE DEMO</p>
+        <h1>Deployment Console<span>.</span></h1>
+        <p>Explore production workflows, rollback events, and server integrity using sample data.</p>
+      </div>
+      <div class="demo-controls" aria-label="Demo scenarios">
+        <p id="scenario-description" aria-live="polite">Choose a scenario to explore.</p>
+        <button type="button" data-scenario="healthy" aria-pressed="true">Healthy</button>
+        <button type="button" data-scenario="deploying" aria-pressed="false">Deploying</button>
+        <button type="button" data-scenario="rollback" aria-pressed="false">Rollback</button>
+        <button type="button" data-scenario="integrity" aria-pressed="false">Integrity alert</button>
+      </div>
+      <div class="metrics" aria-label="Production summary">
+        <div><strong id="live">–</strong><span>Sites online</span></div>
+        <div><strong id="building">–</strong><span>Deploying</span></div>
+        <div><strong id="fallback">–</strong><span>Fallback timers</span></div>
+      </div>
+    </section>
+    <section aria-labelledby="sites-heading">
+      <div class="section-heading"><h2 id="sites-heading">Sample sites</h2><p id="sample">Waiting for server status</p></div>
+      <div class="sites" id="sites"></div>
+    </section>
+    <section aria-labelledby="security-heading">
+      <div class="section-heading"><h2 id="security-heading">Server security</h2></div>
+      <div class="sites">
+        <article class="card security-card">
+          <div class="card-top"><h3>System audit</h3><span id="audit-status" class="badge" data-tone="warn">Checking</span></div>
+          <p>Auditd records changes to SSH, Nginx, Cloudflare Tunnel, deployment services, and privilege settings.</p>
+        </article>
+        <article class="card security-card">
+          <div class="card-top"><h3>File integrity</h3><span id="integrity-status" class="badge" data-tone="warn">Checking</span></div>
+          <p>AIDE compares protected files against the server baseline.</p>
+          <dl>
+            <div><dt>Last scan</dt><dd id="last-scan">—</dd></div>
+            <div><dt>Next scheduled scan</dt><dd id="next-scan">—</dd></div>
+          </dl>
+        </article>
+      </div>
+    </section>
+    <section class="activity" aria-labelledby="activity-heading">
+      <div class="section-heading"><h2 id="activity-heading">Event log</h2><div class="event-heading-actions"><p id="event-update"></p><button type="button" id="export-events" disabled>Export JSON</button></div></div>
+      <div class="log-panel">
+        <div class="log-controls">
+          <label>Search<input id="event-query" type="search" placeholder="Release, component, or message"></label>
+          <label>Source<select id="event-site"><option value="">All sources</option><option value="server">Server</option></select></label>
+          <label>Level<select id="event-level"><option value="">All levels</option><option value="info">Info</option><option value="success">Success</option><option value="warning">Warning</option><option value="error">Error</option></select></label>
+        </div>
+        <p class="log-count" id="event-count" role="status"></p>
+        <ol id="events"></ol>
+        <button type="button" id="show-more" hidden>Show more</button>
+      </div>
+    </section>
+  </main>
+  <template id="site-card">
+    <article class="card">
+      <div class="card-top"><span class="site-mark" aria-hidden="true"></span><span class="badge"></span></div>
+      <h3></h3><a class="site-url" target="_blank" rel="noopener"></a>
+      <dl>
+        <div><dt>Release</dt><dd class="release"></dd></div>
+        <div><dt>Published</dt><dd class="published"></dd></div>
+        <div><dt>Actions signal</dt><dd class="signal"></dd></div>
+        <div><dt>Last deployment check</dt><dd class="last-check"></dd></div>
+        <div><dt>Fallback timer</dt><dd class="timer"></dd></div>
+      </dl>
+      <a class="workflow" target="_blank" rel="noopener">GitHub Actions</a>
+    </article>
+  </template>
+</body>
+</html>

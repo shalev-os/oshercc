@@ -35,7 +35,7 @@ export default function SelectedWork() {
       <header className="selected-work__intro">
         <p className="selected-work__label">Selected work</p>
         <h2 id="selected-work-title">From idea to live site.</h2>
-        <p>Two live websites that connect the work on screen with the systems behind it.</p>
+        <p>Two live websites and the deployment console that monitors them.</p>
       </header>
 
       <div className="selected-work__grid">
@@ -75,6 +75,30 @@ export default function SelectedWork() {
             </div>
           </article>
         ))}
+        <article className="selected-work__project selected-work__feature">
+          <div className="selected-work__visual selected-work__console-art" aria-hidden="true">
+            <div className="selected-work__console-bar"><span>OSHER / DEPLOY</span><span>● DEMO</span></div>
+            <p>Deployment Console<span>.</span></p>
+            <div className="selected-work__console-metrics">
+              <div><strong>2/2</strong><span>Sites online</span></div>
+              <div><strong>2/2</strong><span>Fallback timers</span></div>
+            </div>
+            <div className="selected-work__console-log"><strong>SUCCESS</strong><span>Release 73da621 is serving traffic</span></div>
+            <div className="selected-work__console-log"><strong>INFO</strong><span>Authenticated Actions signal received</span></div>
+          </div>
+          <div className="selected-work__feature-copy">
+            <p className="selected-work__label selected-work__kind">Infrastructure · Observability</p>
+            <h3>Deployment Console</h3>
+            <p className="selected-work__description">A private dashboard for Linux deployments, with release health, searchable event logs, and file integrity checks. The interactive demo lets you follow a release, see a rollback, and inspect an integrity alert using sample data.</p>
+            <ul className="selected-work__stack" aria-label="Deployment Console technologies">
+              {["JavaScript", "Python", "systemd", "Cloudflare Access"].map((technology) => <li key={technology}>{technology}</li>)}
+            </ul>
+            <div className="selected-work__links">
+              <a href="/deployment-console/">Interactive demo</a>
+              <a href="https://github.com/shalev-os/oshercc/tree/main/public/deployment-console" target="_blank" rel="noopener noreferrer">GitHub source <ArrowUpRight size={16} aria-hidden="true" /></a>
+            </div>
+          </div>
+        </article>
       </div>
     </section>
   );
