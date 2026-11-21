@@ -20,6 +20,7 @@ let clockOffset = 0;
 let severity = "";
 let selectedWindow = null;
 let inspectedEvent = null;
+let chartWindows = [];
 
 function renderSite(site) {
   const card = byId("site-card").content.cloneNode(true);
@@ -87,8 +88,7 @@ function updateBuildCountdowns() {
 }
 
 function windowBounds(index) {
-  const start = sampledTime - (windowCount - index) * windowSize;
-  return [start, start + windowSize];
+  return chartWindows[index] || [sampledTime - windowSize, sampledTime];
 }
 
 function updateChartSelection() {
@@ -100,9 +100,20 @@ function updateChartSelection() {
 function renderChart() {
   const chart = byId("activity-chart");
   const activeIndex = chart.contains(document.activeElement) ? document.activeElement.dataset.index : undefined;
-  const windows = Array.from({ length: windowCount }, (_, index) => {
-    const [start, end] = windowBounds(index);
-    const count = eventEntries.filter((event) => {
+  const range = Number(byId("event-range").value);
+  const filtered = matchingEvents;
+  const earliest = filtered.reduce((minimum, event) => Math.min(minimum, Date.parse(event.time)), sampledTime);
+  const span = range ? range * hour : Math.max(windowSize, sampledTime - earliest);
+  const startTime = sampledTime - span;
+  chartWindows = Array.from({ length: windowCount }, (_, index) => {
+    const start = startTime + span * index / windowCount;
+    return [start, startTime + span * (index + 1) / windowCount];
+  });
+  const labelTime = span > 48 * hour
+    ? new Intl.DateTimeFormat(undefined, { month: "short", day: "numeric", hour: "numeric" })
+    : chartTime;
+  const windows = chartWindows.map(([start, end], index) => {
+    const count = filtered.filter((event) => {
       const time = Date.parse(event.time);
       return time >= start && (index === windowCount - 1 ? time <= end : time < end);
     }).length;
@@ -121,11 +132,10 @@ function renderChart() {
     bar.value = count;
     bar.setAttribute("aria-hidden", "true");
     const label = document.createElement("span");
-    label.textContent = chartTime.format(start);
+    label.textContent = labelTime.format(start);
     button.append(total, bar, label);
     button.addEventListener("click", () => {
       selectedWindow = selectedWindow === index ? null : index;
-      byId("event-range").value = "";
       updateChartSelection();
       resetEventRows();
     });
@@ -152,7 +162,7 @@ function filteredCsv() {
 function eventContext(event) {
   const context = document.createElement("dl");
   context.className = "event-context";
-  for (const [key, value] of Object.entries(event.details || {}).slice(0, 3)) {
+  for (const [key, value] of Object.entries(event.details || {})) {
     const group = document.createElement("div");
     const title = document.createElement("dt");
     title.textContent = key.replace(/([a-z])([A-Z])/g, "$1 $2");
@@ -183,6 +193,9 @@ function renderEvents() {
   const site = byId("event-site").value;
   const category = byId("event-category").value;
   const range = Number(byId("event-range").value);
+  for (const button of document.querySelectorAll("[data-range]")) {
+    button.setAttribute("aria-pressed", String(button.dataset.range === byId("event-range").value));
+  }
   const window = selectedWindow === null ? null : windowBounds(selectedWindow);
   const scopedEvents = eventEntries.filter((event) => {
     const time = Date.parse(event.time);
@@ -199,6 +212,7 @@ function renderEvents() {
     button.querySelector("strong").textContent = scopedEvents.filter((event) => event.level === level).length;
   }
   matchingEvents = scopedEvents.filter((event) => !severity || event.level === severity);
+  renderChart();
   const rows = matchingEvents.slice(0, visibleCount);
   byId("event-count").textContent = matchingEvents.length
     ? `Showing ${rows.length} of ${matchingEvents.length} events`
@@ -273,9 +287,9 @@ function renderHost(host) {
 
 export function renderStatus(data) {
   const { sites, security } = data;
-  const independentSites = sites.filter(site => !site.sharedTimer);
   byId("live").textContent = sites.filter((site) => site.online).length + "/" + sites.length;
-  byId("building").textContent = independentSites.filter((site) => site.deploying).length;
+  byId("building").textContent = sites.filter((site) => site.deploying).length;
+  const independentSites = sites.filter(site => !site.sharedTimer);
   byId("fallback").textContent = independentSites.filter((site) => site.timer).length + "/" + independentSites.length;
   byId("sites").replaceChildren(...sites.map(renderSite));
   byId("sample").textContent = "Updated " + timestamp(data.sampled);
@@ -322,7 +336,6 @@ export function renderStatus(data) {
   byId("event-update").textContent = data.events.updated
     ? "Collected " + timestamp(data.events.updated)
     : "Log snapshot unavailable";
-  renderChart();
   renderEvents();
   updateBuildCountdowns();
 }
@@ -353,6 +366,14 @@ byId("event-range").addEventListener("input", () => {
   updateChartSelection();
   resetEventRows();
 });
+for (const button of document.querySelectorAll("[data-range]")) {
+  button.addEventListener("click", () => {
+    byId("event-range").value = button.dataset.range;
+    selectedWindow = null;
+    updateChartSelection();
+    resetEventRows();
+  });
+}
 for (const button of document.querySelectorAll("[data-severity]")) {
   button.addEventListener("click", () => {
     severity = severity === button.dataset.severity ? "" : button.dataset.severity;

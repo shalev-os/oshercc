@@ -111,7 +111,7 @@
       <div class="log-panel">
         <div class="log-overview">
           <div class="log-overview-heading">
-            <h3>Activity · 24 hours</h3>
+            <div><h3>Activity volume</h3><p class="activity-caption">Six time buckets · follows the active filters and time range</p></div>
             <button type="button" id="clear-filters">Clear filters</button>
           </div>
           <div id="activity-chart" class="activity-chart" aria-label="Events by four-hour period"></div>
@@ -122,6 +122,15 @@
             <button type="button" data-severity="error" aria-pressed="false">Error <strong>0</strong></button>
           </div>
         </div>
+        <nav class="time-range-shortcuts" aria-label="Filter event log by time">
+          <span>Show events from</span>
+          <button type="button" data-range="" aria-pressed="true">All retained</button>
+          <button type="button" data-range="1" aria-pressed="false">1 hour</button>
+          <button type="button" data-range="24" aria-pressed="false">24 hours</button>
+          <button type="button" data-range="48" aria-pressed="false">48 hours</button>
+          <button type="button" data-range="168" aria-pressed="false">7 days</button>
+          <button type="button" data-range="336" aria-pressed="false">14 days</button>
+        </nav>
         <div class="log-controls">
           <label>Search<input id="event-query" type="search" placeholder="Release, component, or message"></label>
           <label>Source<select id="event-site"><option value="">All sources</option><option value="server">Server</option></select></label>

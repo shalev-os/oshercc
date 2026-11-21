@@ -104,8 +104,17 @@ if (live) {
   assert.equal(byId("live").textContent, "3/3");
   assert.equal(byId("fallback").textContent, "2/2");
   assert.match(byId("sites").textContent, /Shared release schedule/);
+  byId("event-category").value = "Visits";
+  byId("event-category").dispatchEvent(new dom.window.Event("input"));
+  assert.match(events()[0].querySelector(".event-context").textContent, /203\.0\.113\./);
+  byId("clear-filters").click();
+  assert.equal(document.querySelectorAll("[data-range]").length, 6);
+  document.querySelector('[data-range="48"]').click();
+  assert.equal(byId("event-range").value, "48");
+  assert.match(byId("event-count").textContent, /of 13 events/);
+  byId("clear-filters").click();
   byId("activity-chart").children[0].click();
-  assert.equal(events().length, 0);
+  assert.equal(events().length, Number(byId("activity-chart").children[0].querySelector("strong").textContent));
   byId("clear-filters").click();
   assert.equal(events().length, 12);
   const category = byId("event-category");
@@ -124,7 +133,7 @@ if (live) {
   assert.match(byId("event-count").textContent, /of 15 events/);
   byId("clear-filters").click();
   scenario("deploying");
-  assert.equal(byId("building").textContent, "1");
+  assert.equal(byId("building").textContent, "2");
   assert.equal(document.querySelector(".build-state").textContent, "Building now");
   assert.equal(byId("host-load").textContent, "1.18");
   scenario("rollback");
