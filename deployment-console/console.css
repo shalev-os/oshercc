@@ -156,6 +156,10 @@ meter::-moz-meter-bar{background:var(--accent)}
 .log-toolbar button,.related-filter button,#reset-empty-results{font-size:.875rem;padding:.35rem .6rem}
 .log-toolbar button[aria-pressed="true"]{border-color:var(--accent);background:var(--selected)}
 .related-filter[hidden]{display:none}
+.investigation:not([hidden]){margin:0 1.4rem .75rem;padding:.65rem .8rem;border:1px solid var(--control-line);background:var(--selected)}
+.investigation label{display:flex;align-items:center;flex-wrap:wrap;gap:.4rem;font-size:.875rem}
+.investigation select{color:inherit;background:var(--surface);border:1px solid var(--control-line);padding:.35rem;font:inherit}
+.activity li[data-investigation-anchor]{background:var(--selected)}
 .related-filter span{font-size:.875rem;overflow-wrap:anywhere;min-width:0}
 .event-heading-actions{display:flex;align-items:center;gap:.8rem;flex-wrap:wrap}
 .event-heading-actions button{font-size:.875rem}
