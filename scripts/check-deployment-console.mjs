@@ -11,6 +11,7 @@ const dom = new JSDOM(html, {
 globalThis.document = dom.window.document;
 globalThis.location = dom.window.location;
 globalThis.Option = dom.window.Option;
+globalThis.window = dom.window;
 
 const byId = (id) => document.getElementById(id);
 const events = () => [...byId("events").children];
@@ -43,25 +44,36 @@ globalThis.fetch = async (url) => {
   return { ok: true, json: async () => snapshot };
 };
 const setInterval = globalThis.setInterval;
-globalThis.setInterval = () => 0;
+const scheduled = [];
+globalThis.setInterval = (_, delay) => {
+  scheduled.push(delay);
+  return 0;
+};
 try {
   const { ready } = await import(new URL("entry.js", root));
   await ready;
   await new Promise(setImmediate);
+  const speed = byId("refresh-rate");
+  assert.equal(speed.value, "fast");
+  speed.value = "ultra";
+  speed.dispatchEvent(new dom.window.Event("change"));
+  await new Promise(setImmediate);
+  assert.deepEqual(scheduled, [10000, 5000]);
+  assert.equal(window.localStorage.getItem("osher-console-refresh"), "ultra");
 } finally {
   globalThis.setInterval = setInterval;
 }
 
 assert.equal(document.querySelector(".demo-controls").hidden, live);
 assert.equal(byId("portfolio-link").hidden, live);
-assert.equal(byId("refresh").hidden, !live);
+assert.equal(byId("refresh").hidden, false);
 assert.equal(byId("activity-chart").children.length, 6);
 assert.doesNotMatch(html, />\s*Checking\s*</i);
 assert.equal(byId("audit-status").hidden, false);
 assert.equal(byId("integrity-status").hidden, false);
 
 if (live) {
-  assert.equal(requests, 1);
+  assert.equal(requests, 2);
   assert.equal(byId("connection").textContent, "Live");
   assert.equal(byId("live").textContent, "1/1");
   assert.equal(byId("integrity-status").textContent, "Baseline matches");
