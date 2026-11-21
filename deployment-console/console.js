@@ -162,7 +162,7 @@ function filteredCsv() {
 function eventContext(event) {
   const context = document.createElement("dl");
   context.className = "event-context";
-  for (const [key, value] of Object.entries(event.details || {}).slice(0, 3)) {
+  for (const [key, value] of Object.entries(event.details || {})) {
     const group = document.createElement("div");
     const title = document.createElement("dt");
     title.textContent = key.replace(/([a-z])([A-Z])/g, "$1 $2");

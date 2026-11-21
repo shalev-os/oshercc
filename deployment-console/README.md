@@ -9,7 +9,7 @@ An interactive demo of the private dashboard that monitors the Linux and Nginx d
 - Inspect host uptime, CPU load, memory, swap, and disk usage.
 - Set the refresh rate to 5–60 seconds or 10–60 minutes.
 - Filter the event log with visible time shortcuts for 1 hour, 24 hours, 48 hours, 7 days, 14 days, or all retained events, or use source, severity, and search filters. The six-bucket activity chart and severity counts follow the active filters. Read structured event details, open each event as JSON, or export the filtered set as JSON or Excel-compatible CSV.
-- Inspect recent origin page loads with HTTP status, origin response time, response bytes, and protocol. These records count observed document requests and omit visitor IP addresses, URLs, and browser identifiers.
+- Inspect recent origin page loads with source IP, HTTP status, origin response time, response bytes, and protocol. Records omit full URLs and browser identifiers. The demo uses documentation-only sample IPs.
 - Use live shortcuts for builds, rollbacks, integrity alerts, and page loads.
 - Browse up to 14 days of retained events, capped at 1,250 page loads and 1,250 operational events. The activity chart shows the last 24 hours.
 - Switch between a healthy release, an active deployment, a rollback, and an integrity alert.
