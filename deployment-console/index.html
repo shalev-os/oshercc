@@ -170,7 +170,7 @@
             <button type="button" id="clear-filters">Clear filters</button>
           </div>
           <div id="activity-chart" class="activity-chart" aria-label="Events by four-hour period"></div>
-          <div class="severity-summary" aria-label="Filter by event severity">
+          <div class="severity-summary" role="group" aria-label="Filter by event severity">
             <button type="button" data-severity="info" aria-pressed="false">Info <strong>0</strong></button>
             <button type="button" data-severity="success" aria-pressed="false">Success <strong>0</strong></button>
             <button type="button" data-severity="warning" aria-pressed="false">Warning <strong>0</strong></button>
@@ -179,9 +179,10 @@
         </div>
         <div class="log-shortcuts" role="group" aria-label="Event filter presets">
           <span>Quick filters</span>
-          <button type="button" data-event-preset="Deploy" data-level="error">Failed deployments</button>
-          <button type="button" data-event-preset="Fail2ban" data-level="warning">SSH blocks</button>
-          <button type="button" data-event-preset="AIDE" data-level="warning">Integrity warnings</button>
+          <button type="button" data-event-preset="" data-levels="warning error">Warnings and errors</button>
+          <button type="button" data-event-preset="Deploy" data-levels="error">Failed deployments</button>
+          <button type="button" data-event-preset="Fail2ban" data-levels="warning">SSH blocks</button>
+          <button type="button" data-event-preset="AIDE" data-levels="warning">Integrity warnings</button>
         </div>
         <nav class="log-shortcuts" aria-label="Filter event log by time">
           <span>Show events from</span>
@@ -202,7 +203,11 @@
         </div>
         <div class="log-toolbar">
           <p class="log-count" id="event-count" role="status"></p>
-          <button type="button" id="event-utc" aria-pressed="false">UTC timestamps</button>
+          <div class="log-display-controls">
+            <button type="button" id="hide-page-loads" aria-pressed="false">Hide page loads</button>
+            <button type="button" id="pinned-events" aria-pressed="false">Pinned only <span id="pinned-count">0</span></button>
+            <button type="button" id="event-utc" aria-pressed="false">UTC timestamps</button>
+          </div>
         </div>
         <div class="related-filter" id="related-filter" hidden>
           <span>Related events: <strong id="related-value"></strong></span>

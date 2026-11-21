@@ -145,6 +145,11 @@ meter::-moz-meter-bar{background:var(--accent)}
 .log-controls :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .log-toolbar,.related-filter{display:flex;align-items:center;flex-wrap:wrap;gap:.5rem 1rem;padding:0 1.4rem .75rem}
 .log-toolbar{justify-content:space-between}
+.log-display-controls,.event-row-actions,.event-row-navigation{display:flex;flex-wrap:wrap;gap:.5rem}
+.event-row-actions,.event-row-navigation{grid-column:1/-1;align-items:center}
+.event-row-actions button,.event-row-navigation button{font-size:.875rem;padding:.35rem .6rem}
+.event-row-actions span,.event-row-navigation span{color:var(--muted);font-size:.875rem}
+.event-pinned{color:var(--accent)}
 .log-count{font-size:.875rem;color:var(--muted);margin:0}
 .log-toolbar button,.related-filter button{font-size:.875rem;padding:.35rem .6rem}
 .log-toolbar button[aria-pressed="true"]{border-color:var(--accent);background:var(--selected)}

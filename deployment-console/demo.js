@@ -13,7 +13,8 @@ const site = (domain, name, mark, release, minutes) => ({
   signal: time(minutes - 1), online: true, deploying: false, failed: false, timer: true,
 });
 const event = (minutes, source, component, level, message, details) => ({
-  time: time(minutes), site: source, component, level, message, details,
+  time: new Date(demoStarted + minutes * 60000).toISOString(),
+  site: source, component, level, message, details,
 });
 const portfolio = "portfolio.example";
 const catalog = "catalog.example";

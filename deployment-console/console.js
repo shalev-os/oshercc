@@ -23,8 +23,11 @@ let eventsUpdated = null;
 let matchingEvents = [];
 let sampledTime = Date.now();
 let clockOffset = 0;
-let severity = "";
+const severities = new Set();
+let hidePageLoads = false;
 let relatedFilter = null;
+let pinnedOnly = false;
+const pinnedEvents = new Map();
 const ipFields = ["clientIp", "sourceIp"];
 const hostCategories = new Map([["Systemd", "host-systemd-count"], ["Host services", "host-service-count"], ["Kernel", "host-kernel-count"]]);
 const hostErrors = "Host errors";
@@ -289,6 +292,38 @@ function resetEventRows() {
   renderEvents();
 }
 
+function eventNavigation(index) {
+  const navigation = document.createElement("nav");
+  navigation.className = "event-row-navigation";
+  navigation.setAttribute("aria-label", "Browse filtered events");
+
+  const position = document.createElement("span");
+  position.textContent = `Event ${index + 1} of ${matchingEvents.length}`;
+
+  const buttons = [-1, 1].map((step) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.textContent = step < 0 ? "Previous event" : "Next event";
+    button.dataset.step = step;
+    const nextIndex = index + step;
+    button.disabled = !matchingEvents[nextIndex];
+    button.addEventListener("click", () => {
+      inspectedEvent = JSON.stringify(matchingEvents[nextIndex]);
+      visibleCount = Math.max(visibleCount, Math.ceil((nextIndex + 1) / pageSize()) * pageSize());
+      renderEvents();
+      const row = byId("events").children[nextIndex];
+      if (!row) return;
+      const nextControl = row.querySelector(`[data-step="${step}"]:enabled`) ?? row.querySelector(".event-inspect");
+      nextControl.focus({ preventScroll: true });
+      row.querySelector(".event-inspect").scrollIntoView?.({ block: "nearest" });
+    });
+    return button;
+  });
+
+  navigation.append(buttons[0], position, buttons[1]);
+  return navigation;
+}
+
 function renderEvents() {
   const phrase = byId("event-query").value.trim().toLowerCase();
   const site = byId("event-site").value;
@@ -297,15 +332,19 @@ function renderEvents() {
   for (const button of document.querySelectorAll("[data-range]")) {
     button.setAttribute("aria-pressed", String(button.dataset.range === byId("event-range").value));
   }
-  const window = selectedWindow === null ? null : windowBounds(selectedWindow);
+  const bounds = selectedWindow === null ? null : windowBounds(selectedWindow);
   byId("related-filter").hidden = !relatedFilter;
   byId("related-value").textContent = relatedFilter ? `${relatedFilter.label} ${relatedFilter.value}` : "";
-  const scopedEvents = eventEntries.filter((event) => {
+  byId("hide-page-loads").setAttribute("aria-pressed", String(hidePageLoads));
+  byId("pinned-events").setAttribute("aria-pressed", String(pinnedOnly));
+  byId("pinned-count").textContent = pinnedEvents.size;
+  const entries = pinnedOnly ? [...pinnedEvents.values()] : eventEntries;
+  const scopedEvents = entries.filter((event) => {
     const time = Date.parse(event.time);
-    const inWindow = !window || (time >= window[0] && (selectedWindow === windowCount - 1 ? time <= window[1] : time < window[1]));
+    const inWindow = !bounds || (time >= bounds[0] && (selectedWindow === windowCount - 1 ? time <= bounds[1] : time < bounds[1]));
     const matchesRelated = !relatedFilter || relatedFilter.fields.some(field =>
       event.details?.[field] === relatedFilter.value);
-    return matchesRelated && inWindow && (!range || time >= sampledTime - range * hour) &&
+    return (!hidePageLoads || event.component !== "Visits") && matchesRelated && inWindow && (!range || time >= sampledTime - range * hour) &&
       (!site || event.site === site) &&
       (!category || (category === hostErrors ? hostCategories.has(event.component) && event.level === "error" : event.component === category)) &&
       (!phrase || [event.message, event.site, event.component, JSON.stringify(event.details || {})]
@@ -313,17 +352,17 @@ function renderEvents() {
   });
   for (const button of document.querySelectorAll("[data-severity]")) {
     const level = button.dataset.severity;
-    button.setAttribute("aria-pressed", String(level === severity));
+    button.setAttribute("aria-pressed", String(severities.has(level)));
     button.querySelector("strong").textContent = scopedEvents.filter((event) => event.level === level).length;
   }
-  matchingEvents = scopedEvents.filter((event) => !severity || event.level === severity);
+  matchingEvents = scopedEvents.filter((event) => !severities.size || severities.has(event.level));
   const direction = byId("event-order").value === "oldest" ? 1 : -1;
   matchingEvents.sort((first, second) => direction * (Date.parse(first.time) - Date.parse(second.time)));
   renderChart();
   const rows = matchingEvents.slice(0, visibleCount);
   byId("event-count").textContent = matchingEvents.length
     ? `Showing ${rows.length} of ${matchingEvents.length} events`
-    : "No matching events";
+    : pinnedOnly && !pinnedEvents.size ? "No pinned events" : "No matching events";
   const showMore = byId("show-more");
   const nextCount = Math.min(pageSize(), matchingEvents.length - rows.length);
   showMore.hidden = nextCount === 0;
@@ -334,8 +373,13 @@ function renderEvents() {
   if (byId("json-panel").open) byId("event-json").textContent = filteredJson();
   const timeFormat = byId("event-utc").getAttribute("aria-pressed") === "true" ? logTimeUtc : logTime;
   const list = byId("events");
-  const focused = list.contains(document.activeElement) ? document.activeElement.dataset.event : undefined;
-  list.replaceChildren(...rows.map((event) => {
+  const active = list.contains(document.activeElement) ? document.activeElement : null;
+  const focused = active?.closest("li")?.dataset.event;
+  const focusedControl = active?.classList.contains("event-pin") ? ".event-pin"
+    : active?.classList.contains("event-download") ? ".event-download"
+    : active?.classList.contains("event-copy-summary") ? ".event-copy-summary"
+    : active?.dataset.step ? `[data-step="${active.dataset.step}"]:enabled` : ".event-inspect";
+  list.replaceChildren(...rows.map((event, index) => {
     const item = document.createElement("li");
     const badge = document.createElement("span");
     badge.className = "event-level";
@@ -346,10 +390,17 @@ function renderEvents() {
     const source = document.createElement("small");
     source.textContent = event.site + " · " + event.component;
     const key = JSON.stringify(event);
+    const pinned = pinnedEvents.has(key);
+    item.dataset.event = key;
+    if (pinned) {
+      const marker = document.createElement("small");
+      marker.className = "event-pinned";
+      marker.textContent = "Pinned";
+      source.append(" · ", marker);
+    }
     const inspect = document.createElement("button");
     inspect.type = "button";
     inspect.className = "event-inspect";
-    inspect.dataset.event = key;
     inspect.textContent = event.message;
     inspect.setAttribute("aria-expanded", String(inspectedEvent === key));
     inspect.addEventListener("click", () => {
@@ -368,11 +419,50 @@ function renderEvents() {
       json.tabIndex = 0;
       json.setAttribute("aria-label", "Event JSON");
       json.textContent = JSON.stringify(event, null, 2);
-      item.append(json);
+      const actions = document.createElement("div");
+      actions.className = "event-row-actions";
+      const pin = document.createElement("button");
+      pin.type = "button";
+      pin.className = "event-pin";
+      pin.textContent = pinned ? "Unpin event" : "Pin event";
+      pin.addEventListener("click", () => {
+        if (pinned) pinnedEvents.delete(key);
+        else pinnedEvents.set(key, event);
+        if (pinned && pinnedOnly) inspectedEvent = null;
+        renderEvents();
+      });
+      const download = document.createElement("button");
+      download.type = "button";
+      download.className = "event-download";
+      download.textContent = "Download event JSON";
+      download.addEventListener("click", () => downloadEvents(json.textContent, "application/json", "deployment-event.json"));
+      const copy = document.createElement("button");
+      copy.type = "button";
+      copy.className = "event-copy-summary";
+      copy.textContent = "Copy summary";
+      const copyStatus = document.createElement("span");
+      copyStatus.setAttribute("role", "status");
+      copy.addEventListener("click", async () => {
+        try {
+          await window.navigator.clipboard.writeText(
+            `[${event.time}] ${event.level.toUpperCase()} · ${event.site} · ${event.component}\n${event.message}`,
+          );
+          copyStatus.textContent = "Summary copied";
+        } catch {
+          copyStatus.textContent = "Clipboard unavailable";
+        }
+      });
+      actions.append(pin, download, copy, copyStatus);
+      item.append(eventNavigation(index), actions, json);
     }
     return item;
   }));
-  if (focused) [...list.querySelectorAll(".event-inspect")].find(button => button.dataset.event === focused)?.focus({ preventScroll: true });
+  if (focused) {
+    const row = [...list.children].find(item => item.dataset.event === focused);
+    const control = row?.querySelector(focusedControl);
+    if (control) control.focus({ preventScroll: true });
+    else if (focusedControl === ".event-pin" && pinnedOnly) byId("pinned-events").focus({ preventScroll: true });
+  }
 }
 
 function formatBytes(bytes) {
@@ -578,8 +668,7 @@ for (const button of document.querySelectorAll("[data-soc-view], [data-event-pre
     clearEventFilters();
     byId("event-range").value = "24";
     byId("event-category").value = button.dataset.socView ?? button.dataset.eventPreset;
-    severity = button.dataset.level ?? "";
-    selectedWindow = null;
+    for (const level of button.dataset.levels?.split(" ") ?? []) severities.add(level);
     resetEventRows();
     if (button.dataset.socView) byId("activity-heading").scrollIntoView?.();
   });
@@ -603,15 +692,19 @@ for (const button of document.querySelectorAll("[data-range]")) {
 }
 for (const button of document.querySelectorAll("[data-severity]")) {
   button.addEventListener("click", () => {
-    severity = severity === button.dataset.severity ? "" : button.dataset.severity;
+    const level = button.dataset.severity;
+    if (severities.has(level)) severities.delete(level);
+    else severities.add(level);
     resetEventRows();
   });
 }
 function clearEventFilters() {
   for (const id of ["event-query", "event-site", "event-category", "event-range"]) byId(id).value = "";
-  severity = "";
+  severities.clear();
+  hidePageLoads = false;
   selectedWindow = null;
   relatedFilter = null;
+  pinnedOnly = false;
 }
 
 byId("clear-filters").addEventListener("click", () => {
@@ -622,6 +715,14 @@ byId("clear-related").addEventListener("click", () => {
   relatedFilter = null;
   resetEventRows();
   byId("event-query").focus();
+});
+byId("hide-page-loads").addEventListener("click", () => {
+  hidePageLoads = !hidePageLoads;
+  resetEventRows();
+});
+byId("pinned-events").addEventListener("click", () => {
+  pinnedOnly = !pinnedOnly;
+  resetEventRows();
 });
 byId("event-utc").addEventListener("click", ({ currentTarget }) => {
   currentTarget.setAttribute("aria-pressed", String(currentTarget.getAttribute("aria-pressed") !== "true"));
@@ -762,7 +863,7 @@ export function startLive() {
       const select = byId("event-category");
       if (![...select.options].some(option => option.value === category)) select.add(new Option(category, category));
       select.value = category;
-      severity = level;
+      if (level) severities.add(level);
       resetEventRows();
       byId("activity-heading").scrollIntoView?.({ block: "start" });
     });

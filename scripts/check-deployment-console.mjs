@@ -54,6 +54,7 @@ const snapshot = {
   },
   sampled: time,
 };
+const fetchBlob = globalThis.fetch;
 let requests = 0;
 globalThis.fetch = async (url) => {
   requests++;
@@ -213,6 +214,50 @@ if (live) {
   byId("event-utc").click();
   byId("clear-related").click();
   assert.equal(byId("related-filter").hidden, true);
+  events()[0].querySelector(".event-inspect").click();
+  const pinnedMessage = events()[0].querySelector(".event-inspect").textContent;
+  const firstRow = events()[0];
+  assert.equal(firstRow.querySelector('[data-step="-1"]').disabled, true);
+  firstRow.querySelector('[data-step="1"]').click();
+  assert.equal(events()[1].querySelector(".event-inspect").getAttribute("aria-expanded"), "true");
+  events()[1].querySelector('[data-step="-1"]').click();
+  assert.equal(events()[0].querySelector(".event-inspect").getAttribute("aria-expanded"), "true");
+  events()[0].querySelector(".event-copy-summary").click();
+  await new Promise(setImmediate);
+  assert.match(copiedText, /INFO · console\.example · Visits/);
+  assert.ok(copiedText.endsWith(pinnedMessage));
+  events()[4].querySelector(".event-inspect").click();
+  events()[4].querySelector('[data-step="1"]').click();
+  assert.equal(events().length, 10);
+  assert.equal(events()[5].querySelector(".event-inspect").getAttribute("aria-expanded"), "true");
+  byId("show-less").click();
+  events()[0].querySelector(".event-inspect").click();
+  const anchorClick = window.HTMLAnchorElement.prototype.click;
+  let download;
+  window.HTMLAnchorElement.prototype.click = function () {
+    download = { filename: this.download, href: this.href };
+  };
+  try {
+    events()[0].querySelector(".event-download").click();
+    assert.equal(download.filename, "deployment-event.json");
+    const response = await fetchBlob(download.href);
+    assert.equal((await response.json()).message, pinnedMessage);
+  } finally {
+    window.HTMLAnchorElement.prototype.click = anchorClick;
+  }
+  events()[0].querySelector(".event-pin").click();
+  assert.equal(byId("pinned-count").textContent, "1");
+  assert.equal(events()[0].querySelector(".event-pinned").textContent, "Pinned");
+  byId("pinned-events").click();
+  scenario("rollback");
+  assert.equal(events().length, 1);
+  assert.equal(events()[0].querySelector(".event-inspect").textContent, pinnedMessage);
+  events()[0].querySelector(".event-inspect").click();
+  events()[0].querySelector(".event-pin").click();
+  assert.equal(events().length, 0);
+  assert.match(byId("event-count").textContent, /No pinned events/);
+  byId("pinned-events").click();
+  scenario("healthy");
   assert.equal(events().length, 5);
   byId("clear-filters").click();
   assert.equal(document.querySelectorAll("[data-range]").length, 6);
@@ -264,6 +309,12 @@ if (live) {
   assert.equal(matching.length, 1);
   assert.match(matching[0].message, /Previous release restored/);
   assert.equal(matching[0].details.rollback, "restored");
+  const warning = document.querySelector('[data-severity="warning"]');
+  warning.click();
+  assert.equal(events().length, 2);
+  assert.equal(warning.getAttribute("aria-pressed"), "true");
+  assert.deepEqual(JSON.parse(byId("event-json").textContent).map(event => event.level), ["error", "warning"]);
+  warning.click();
   events()[0].querySelector(".event-inspect").click();
   assert.match(events()[0].querySelector(".event-context").textContent, /health checkfailed/i);
   assert.deepEqual(JSON.parse(events()[0].querySelector(".event-json").textContent), matching[0]);
@@ -277,6 +328,17 @@ if (live) {
   assert.equal(byId("event-category").value, "SOC");
   assert.equal(events().length, 1);
   byId("clear-filters").click();
+  document.querySelector('[data-levels="warning error"]').click();
+  assert.equal(byId("event-range").value, "24");
+  assert.equal(document.querySelector('[data-severity="error"]').getAttribute("aria-pressed"), "true");
+  assert.ok(events().every(row => row.querySelector(".event-level").dataset.level === "warning"));
+  byId("clear-filters").click();
+  byId("hide-page-loads").click();
+  assert.equal(byId("hide-page-loads").getAttribute("aria-pressed"), "true");
+  assert.ok(JSON.parse(byId("event-json").textContent).every(event => event.component !== "Visits"));
+  byId("clear-filters").click();
+  assert.equal(byId("hide-page-loads").getAttribute("aria-pressed"), "false");
+  assert.ok(JSON.parse(byId("event-json").textContent).some(event => event.component === "Visits"));
   assert.match(byId("attention-items").textContent, /File integrity changes detected/);
   assert.equal(byId("integrity-status").textContent, "Changes detected");
 }
