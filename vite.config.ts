@@ -4,6 +4,14 @@ import path from "path";
 
 // https://vitejs.dev/config/
 export default defineConfig({
+  build: {
+    rollupOptions: {
+      input: {
+        portfolio: path.resolve(__dirname, "index.html"),
+        console: path.resolve(__dirname, "deployment-console/index.html"),
+      },
+    },
+  },
   server: {
     host: "::",
     port: 8080,

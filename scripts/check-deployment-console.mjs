@@ -3,7 +3,7 @@ import { readFile } from "node:fs/promises";
 import { JSDOM } from "jsdom";
 
 const live = process.argv.includes("--live");
-const root = new URL("../public/deployment-console/", import.meta.url);
+const root = new URL("../deployment-console/", import.meta.url);
 const html = await readFile(new URL("index.html", root), "utf8");
 const dom = new JSDOM(html, {
   url: live ? "https://deploy.osher.cc/" : "https://osher.cc/deployment-console/",

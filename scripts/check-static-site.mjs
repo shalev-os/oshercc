@@ -26,6 +26,7 @@ if (existsSync(join(root, '.env'))) failures.push('A static site must not requir
 const files = [
   ...filesIn(join(root, 'src')),
   ...filesIn(join(root, 'public')),
+  ...filesIn(join(root, 'deployment-console')),
   ...filesIn(join(root, 'docs')),
   join(root, 'README.md'),
   join(root, 'index.html'),
