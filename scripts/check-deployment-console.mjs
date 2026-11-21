@@ -148,6 +148,14 @@ if (live) {
   await new Promise(setImmediate);
   assert.equal(byId("event-stream").textContent, "Live stream");
   assert.match(events()[0].textContent, /Release event delivered by WebSocket/);
+  assert.equal(events().length, 5);
+  assert.equal(byId("show-more").textContent, "Show 5 more events");
+  byId("show-more").click();
+  assert.equal(events().length, 10);
+  byId("show-less").click();
+  assert.equal(events().length, 5);
+  byId("event-page-size").value = "50";
+  byId("event-page-size").dispatchEvent(new window.Event("change"));
   assert.equal(events().length, 50);
   assert.equal(byId("show-more").textContent, "Show 7 more events");
   byId("show-more").click();
@@ -173,6 +181,8 @@ if (live) {
   assert.equal(byId("sites").firstElementChild.querySelector(".build-window-note").textContent, "The fallback timer checks for a validated release.");
   byId("event-category").value = "Visits";
   byId("event-category").dispatchEvent(new dom.window.Event("input"));
+  assert.equal(events()[0].querySelector(".event-context"), null);
+  events()[0].querySelector(".event-inspect").click();
   assert.match(events()[0].querySelector(".event-context").textContent, /203\.0\.113\./);
   events()[0].querySelector(".copy-ip").click();
   await new Promise(setImmediate);
@@ -185,9 +195,9 @@ if (live) {
   assert.match(byId("event-count").textContent, /of 13 events/);
   byId("clear-filters").click();
   byId("activity-chart").children[0].click();
-  assert.equal(events().length, Number(byId("activity-chart").children[0].querySelector("strong").textContent));
+  assert.equal(events().length, Math.min(5, Number(byId("activity-chart").children[0].querySelector("strong").textContent)));
   byId("clear-filters").click();
-  assert.equal(events().length, 15);
+  assert.equal(events().length, 5);
   const category = byId("event-category");
   category.value = "Visits";
   category.dispatchEvent(new dom.window.Event("input"));
@@ -206,6 +216,9 @@ if (live) {
   const manualCard = document.querySelector('[data-deploy-target="console.example"]').closest(".card");
   assert.match(manualCard.querySelector(".build-window").textContent, /Deployment schedule/);
   assert.match(manualCard.querySelector(".build-window-note").textContent, /simulated deployment/);
+  assert.equal(manualCard.querySelector(".timer-state").textContent, "No timer");
+  assert.equal(manualCard.querySelector(".build-countdown").textContent, "On demand");
+  assert.equal(manualCard.querySelector(".last-timer").parentElement.hidden, true);
   const demoActions = [...document.querySelectorAll(".workflow")];
   assert.equal(demoActions.length, 3);
   assert.equal(demoActions[1].href, "https://github.com/shalev-os/mazonhaosher/actions");
@@ -225,12 +238,19 @@ if (live) {
   assert.equal(matching.length, 1);
   assert.match(matching[0].message, /Previous release restored/);
   assert.equal(matching[0].details.rollback, "restored");
-  assert.match(events()[0].querySelector(".event-context").textContent, /health checkfailed/i);
   events()[0].querySelector(".event-inspect").click();
+  assert.match(events()[0].querySelector(".event-context").textContent, /health checkfailed/i);
   assert.deepEqual(JSON.parse(events()[0].querySelector(".event-json").textContent), matching[0]);
   assert.equal(byId("export-csv").disabled, false);
   byId("clear-filters").click();
   scenario("integrity");
+  assert.equal(byId("soc-ssh").textContent, "3");
+  assert.equal(byId("soc-integrity").textContent, "1");
+  assert.match(byId("soc-alerts").textContent, /3 distinct SSH sources/);
+  document.querySelector('[data-soc-view="SOC"]').click();
+  assert.equal(byId("event-category").value, "SOC");
+  assert.equal(events().length, 1);
+  byId("clear-filters").click();
   assert.match(byId("attention-items").textContent, /File integrity changes detected/);
   assert.equal(byId("integrity-status").textContent, "Changes detected");
 }

@@ -12,7 +12,7 @@
     <a class="brand" href="#overview" aria-label="Osher Deployment Console overview"><span>SO<span class="brand-dot">.</span></span><span class="brand-sub">Deployment Console</span></a>
     <nav class="dashboard-nav" aria-label="Dashboard navigation">
       <a href="#sites-heading">Sites</a>
-      <a href="#security-heading">Security</a>
+      <a href="#security-heading">SOC</a>
       <a href="#host-heading">Host</a>
       <a href="#activity-heading">Event log</a>
     </nav>
@@ -83,7 +83,27 @@
       <div class="sites production-grid" id="sites"></div>
     </section>
     <section aria-labelledby="security-heading">
-      <div class="section-heading"><h2 id="security-heading">Server security</h2></div>
+      <div class="section-heading"><h2 id="security-heading">Security operations</h2><p id="soc-freshness">Waiting for security events</p></div>
+      <div class="security-grid soc-overview" aria-label="Security signals in the last 24 hours">
+        <article class="card security-card">
+          <h3>SSH protection</h3><strong id="soc-ssh">—</strong><p>Blocked SSH sources in the last 24 hours</p>
+          <button type="button" data-soc-view="Fail2ban">Review SSH events</button>
+        </article>
+        <article class="card security-card">
+          <h3>Configuration changes</h3><strong id="soc-audit">—</strong><p>Audited changes in the last 24 hours</p>
+          <button type="button" data-soc-view="Auditd">Review changes</button>
+        </article>
+        <article class="card security-card">
+          <h3>File integrity</h3><strong id="soc-integrity">—</strong><p>Scan warnings and errors in the last 24 hours</p>
+          <button type="button" data-soc-view="AIDE">Review scans</button>
+        </article>
+      </div>
+      <div class="card soc-alerts">
+        <div class="card-top"><h3>Correlated alerts</h3><button type="button" data-soc-view="SOC">Review alerts</button></div>
+        <p id="soc-alert-status">Waiting for the event collector</p>
+        <ul id="soc-alerts" hidden></ul>
+      </div>
+      <h3>Sensor health</h3>
       <div class="security-grid">
         <article class="card security-card">
           <div class="card-top"><h3>System audit</h3><span id="audit-status" class="badge" hidden></span></div>
@@ -171,10 +191,14 @@
           <label>Source<select id="event-site"><option value="">All sources</option><option value="server">Server</option></select></label>
           <label>Category<select id="event-category"><option value="">All categories</option></select></label>
           <label>Time range<select id="event-range"><option value="">All retained events</option><option value="1">Last hour</option><option value="24">Last 24 hours</option><option value="48">Last 48 hours</option><option value="168">Last 7 days</option><option value="336">Last 14 days</option></select></label>
+          <label>Events to show<select id="event-page-size"><option value="5">5</option><option value="10">10</option><option value="25">25</option><option value="50">50</option></select></label>
         </div>
         <p class="log-count" id="event-count" role="status"></p>
         <ol id="events"></ol>
-        <button type="button" id="show-more" hidden>Show more</button>
+        <div class="log-pagination">
+          <button type="button" id="show-more" hidden>Show more</button>
+          <button type="button" id="show-less" hidden>Show fewer</button>
+        </div>
         <details id="json-panel" class="json-panel">
           <summary>View filtered JSON</summary>
           <div class="json-toolbar"><button type="button" id="copy-json">Copy JSON</button><span id="copy-status" role="status"></span></div>
@@ -197,7 +221,7 @@
     </div>
   </footer>
   <template id="site-card">
-    <article class="card">
+    <article class="card site-card">
       <div class="card-top"><span class="site-mark" aria-hidden="true"></span><span class="badge"></span></div>
       <h3></h3><a class="site-url" target="_blank" rel="noopener"></a>
       <div class="build-window">
@@ -214,10 +238,12 @@
         <div><dt>Last timer trigger</dt><dd class="last-timer"></dd></div>
         <div><dt>Build process</dt><dd class="build-state"></dd></div>
       </dl>
-      <a class="workflow" target="_blank" rel="noopener">GitHub Actions</a>
-      <div class="manual-deployment" hidden>
-        <p role="status"></p>
-        <button type="button">Deploy now</button>
+      <div class="site-actions">
+        <a class="workflow" target="_blank" rel="noopener">GitHub Actions</a>
+        <div class="manual-deployment" hidden>
+          <button type="button">Deploy now</button>
+          <p role="status"></p>
+        </div>
       </div>
     </article>
   </template>

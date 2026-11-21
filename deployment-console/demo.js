@@ -80,7 +80,12 @@ function scenarioData(mode) {
   }
   if (mode === "integrity") {
     Object.assign(security, { integrity: "changes", lastScan: time(-1) });
-    entries.unshift(event(-1, "server", "AIDE", "warning", "Integrity baseline differences detected", { baseline: "changed", entries: 2 }));
+    entries.unshift(
+      event(-1, "server", "AIDE", "warning", "Integrity baseline differences detected", { baseline: "changed", entries: 2 }),
+      event(-30, "server", "SOC", "warning", "Fail2ban blocked 3 distinct SSH sources in a 15-minute window.", { distinctSources: 3, windowMinutes: 15, source: "Fail2ban" }),
+      event(-30, "server", "Fail2ban", "warning", "Fail2ban blocked an SSH source.", { jail: "sshd", action: "blocked", sourceIp: "198.51.100.26" }),
+      event(-55, "server", "Fail2ban", "warning", "Fail2ban blocked an SSH source.", { jail: "sshd", action: "blocked", sourceIp: "198.51.100.25" }),
+    );
   }
   return { sampled: time(0), sites, security, host, events: { entries, updated: time(0) } };
 }

@@ -11,8 +11,9 @@ const hour = 3600000;
 const windowSize = 4 * hour;
 const windowCount = 6;
 const refreshPreference = "osher-console-refresh";
-const pageSize = 50;
-let visibleCount = pageSize;
+const eventPageSize = byId("event-page-size");
+const pageSize = () => Number(eventPageSize.value);
+let visibleCount = pageSize();
 let eventEntries = [];
 let eventsUpdated = null;
 let matchingEvents = [];
@@ -94,9 +95,10 @@ function renderSite(site) {
   select(".last-check").textContent = timestamp(site.lastCheck);
   const schedule = select(".build-window");
   const timerState = select(".timer-state");
-  timerState.textContent = site.manualDeploy ? "Manual deployment" : site.timer ? "Timer running" : "Timer inactive";
+  timerState.textContent = site.manualDeploy ? "No timer" : site.timer ? "Timer running" : "Timer inactive";
   timerState.dataset.running = String(site.timer);
   if (site.manualDeploy) {
+    select(".last-timer").parentElement.hidden = true;
     select(".build-window-head span:first-child").textContent = "Deployment schedule";
     select(".build-window-note").textContent = liveMode
       ? "Deploy now checks for a validated release."
@@ -262,7 +264,8 @@ function downloadEvents(content, type, filename) {
 }
 
 function resetEventRows() {
-  visibleCount = pageSize;
+  inspectedEvent = null;
+  visibleCount = pageSize();
   renderEvents();
 }
 
@@ -296,8 +299,9 @@ function renderEvents() {
     ? `Showing ${rows.length} of ${matchingEvents.length} events`
     : "No matching events";
   const showMore = byId("show-more");
-  const nextCount = Math.min(pageSize, matchingEvents.length - rows.length);
+  const nextCount = Math.min(pageSize(), matchingEvents.length - rows.length);
   showMore.hidden = nextCount === 0;
+  byId("show-less").hidden = rows.length <= pageSize();
   showMore.textContent = `Show ${nextCount} more events`;
   byId("export-events").disabled = !matchingEvents.length;
   byId("export-csv").disabled = !matchingEvents.length;
@@ -326,12 +330,12 @@ function renderEvents() {
       renderEvents();
     });
     detail.append(inspect, source);
-    if (event.details) detail.append(eventContext(event));
     const time = document.createElement("time");
     time.dateTime = event.time;
     time.textContent = logTime.format(new Date(event.time));
     item.append(badge, detail, time);
     if (inspectedEvent === key) {
+      if (event.details) detail.append(eventContext(event));
       const json = document.createElement("pre");
       json.className = "event-json";
       json.tabIndex = 0;
@@ -387,6 +391,30 @@ function renderAttention(sites, security) {
   list.replaceChildren(...issues.map(issue => {
     const item = document.createElement("li");
     item.textContent = issue;
+    return item;
+  }));
+}
+
+function renderSecurityOperations(events, now, updated) {
+  const recent = events.filter(event => {
+    const time = Date.parse(event.time);
+    return time >= now - 24 * hour && time <= now;
+  });
+  const blocked = new Set(recent.filter(event => event.component === "Fail2ban" && event.details?.action === "blocked")
+    .map(event => event.details.sourceIp).filter(Boolean));
+  byId("soc-ssh").textContent = updated ? blocked.size : "—";
+  byId("soc-audit").textContent = updated ? recent.filter(event => event.component === "Auditd").length : "—";
+  byId("soc-integrity").textContent = updated ? recent.filter(event => event.component === "AIDE" && ["warning", "error"].includes(event.level)).length : "—";
+  byId("soc-freshness").textContent = updated ? "Collected " + timestamp(updated) : "Security event snapshot unavailable";
+  const alerts = recent.filter(event => event.component === "SOC");
+  byId("soc-alert-status").textContent = updated
+    ? alerts.length + " alerts in the last 24 hours"
+    : "Security event snapshot unavailable";
+  const list = byId("soc-alerts");
+  list.hidden = !alerts.length;
+  list.replaceChildren(...alerts.slice(0, 5).map(event => {
+    const item = document.createElement("li");
+    item.textContent = timestamp(event.time) + " · " + event.message;
     return item;
   }));
 }
@@ -482,12 +510,13 @@ function renderEventSnapshot(events) {
   eventEntries = events.entries;
   eventsUpdated = events.updated;
   const categorySelect = byId("event-category");
-  for (const category of [...new Set(eventEntries.map(event => event.component))].sort()) {
+  for (const category of [...new Set(["SOC", "Auditd", "Fail2ban", "AIDE", ...eventEntries.map(event => event.component)])].sort()) {
     if (![...categorySelect.options].some(option => option.value === category)) {
       categorySelect.add(new Option(category, category));
     }
   }
   renderTraffic(eventEntries, sampledTime, eventsUpdated);
+  renderSecurityOperations(eventEntries, sampledTime, eventsUpdated);
   const hostEvents = eventEntries.filter(event => hostCategories.has(event.component) && Date.parse(event.time) >= sampledTime - 24 * hour);
   for (const [component, countId] of hostCategories) {
     byId(countId).textContent = hostEvents.filter(event => event.component === component).length;
@@ -515,6 +544,19 @@ async function refresh() {
   } finally {
     button.disabled = false;
   }
+}
+
+for (const button of document.querySelectorAll("[data-soc-view]")) {
+  button.addEventListener("click", () => {
+    byId("event-query").value = "";
+    byId("event-site").value = "";
+    byId("event-range").value = "24";
+    byId("event-category").value = button.dataset.socView;
+    severity = "";
+    selectedWindow = null;
+    resetEventRows();
+    byId("activity-heading").scrollIntoView?.();
+  });
 }
 
 for (const id of ["event-query", "event-site", "event-category"]) {
@@ -546,8 +588,13 @@ byId("clear-filters").addEventListener("click", () => {
   updateChartSelection();
   resetEventRows();
 });
+eventPageSize.addEventListener("change", resetEventRows);
+byId("show-less").addEventListener("click", () => {
+  resetEventRows();
+  byId("show-more").focus();
+});
 byId("show-more").addEventListener("click", () => {
-  visibleCount += pageSize;
+  visibleCount = Math.min(visibleCount + pageSize(), matchingEvents.length);
   renderEvents();
 });
 byId("export-events").addEventListener("click", () => {
