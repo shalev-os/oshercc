@@ -17,6 +17,7 @@ const chartTime = new Intl.DateTimeFormat(undefined, { hour: "numeric", minute: 
 const hour = 3600000;
 const windowSize = 4 * hour;
 const windowCount = 6;
+const investigationPreviewLimit = 30;
 const refreshPreference = "osher-console-refresh";
 const eventPageSize = byId("event-page-size");
 const pageSize = () => Number(eventPageSize.value);
@@ -357,6 +358,47 @@ function openInvestigation(event) {
   byId("investigation-radius").focus();
 }
 
+function investigationWindow() {
+  if (!investigation) return null;
+  const radius = Number(byId("investigation-radius").value) * 60000;
+  return [investigation.time - radius, investigation.time + radius];
+}
+
+function describeInvestigationEvent(event) {
+  const heading = `[${event.time}] ${event.level.toUpperCase()} | ${event.site} | ${event.component}`;
+  const details = Object.keys(event.details || {}).length
+    ? JSON.stringify(event.details, null, 2)
+    : "No additional details recorded.";
+  return `${heading}\n${event.message}\n${details}`;
+}
+
+function investigationText(bounds, limit = Infinity) {
+  const nearby = matchingEvents.filter(event =>
+    event.time !== investigation.event.time || JSON.stringify(event) !== investigation.key);
+  const eventTime = event => Date.parse(event.time);
+  const displayed = nearby.length > limit
+    ? nearby.sort((a, b) => Math.abs(eventTime(a) - investigation.time) - Math.abs(eventTime(b) - investigation.time)).slice(0, limit)
+    : nearby;
+  displayed.sort((a, b) => eventTime(a) - eventTime(b));
+  const [start, end] = bounds.map(time => new Date(time).toISOString());
+  const count = nearby.length > displayed.length
+    ? `${displayed.length} nearest of ${nearby.length}`
+    : String(nearby.length);
+  const timeline = displayed.length
+    ? displayed.map(describeInvestigationEvent).join("\n\n")
+    : "No other matching events in this window.";
+  return [
+    `> Investigation window: ±${(bounds[1] - investigation.time) / 60000}m`,
+    `UTC window: ${start} to ${end}`,
+    "",
+    "SELECTED EVENT",
+    describeInvestigationEvent(investigation.event),
+    "",
+    `SURROUNDING EVENTS (${count})`,
+    timeline,
+  ].join("\n");
+}
+
 function renderEvents() {
   const phrase = byId("event-query").value.trim().toLowerCase();
   const site = byId("event-site").value;
@@ -365,9 +407,7 @@ function renderEvents() {
   for (const button of document.querySelectorAll("[data-range]")) {
     button.setAttribute("aria-pressed", String(button.dataset.range === byId("event-range").value));
   }
-  const investigationRadius = Number(byId("investigation-radius").value) * 60000;
-  const investigationBounds = investigation
-    ? [investigation.time - investigationRadius, investigation.time + investigationRadius] : null;
+  const investigationBounds = investigationWindow();
   const bounds = selectedWindow === null ? null : windowBounds(selectedWindow);
   const timeFormat = byId("event-utc").getAttribute("aria-pressed") === "true" ? logTimeUtc : logTime;
   byId("investigation").hidden = !investigation;
@@ -404,6 +444,12 @@ function renderEvents() {
   matchingEvents = scopedEvents.filter((event) => !severities.size || severities.has(event.level));
   const direction = byId("event-order").value === "oldest" ? 1 : -1;
   matchingEvents.sort((first, second) => direction * (Date.parse(first.time) - Date.parse(second.time)));
+  const terminal = byId("investigation-terminal");
+  const output = investigation ? investigationText(investigationBounds, investigationPreviewLimit) : "";
+  if (terminal.textContent !== output) {
+    terminal.textContent = output;
+    byId("investigation-copy-status").textContent = "";
+  }
   renderChart(investigationBounds);
   const rows = matchingEvents.slice(0, visibleCount);
   byId("event-count").textContent = matchingEvents.length
@@ -794,6 +840,23 @@ byId("reset-empty-results").addEventListener("click", () => {
 byId("investigation-radius").addEventListener("change", () => {
   selectedWindow = null;
   resetEventRows();
+});
+byId("copy-investigation").addEventListener("click", async () => {
+  const output = byId("investigation-terminal").textContent;
+  if (!output) return;
+  let message;
+  try {
+    await window.navigator.clipboard.writeText(output);
+    message = "Output copied";
+  } catch {
+    message = "Clipboard unavailable. Download the log instead.";
+  }
+  if (byId("investigation-terminal").textContent === output) {
+    byId("investigation-copy-status").textContent = message;
+  }
+});
+byId("download-investigation").addEventListener("click", () => {
+  if (investigation) downloadFile(investigationText(investigationWindow()), "text/plain;charset=utf-8", "investigation.log.txt");
 });
 byId("close-investigation").addEventListener("click", () => {
   endInvestigation();

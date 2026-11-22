@@ -151,6 +151,15 @@
             </select>
           </label>
           <button type="button" id="close-investigation">End investigation</button>
+          <section class="investigation-output" aria-labelledby="investigation-output-title">
+            <div class="investigation-output-header">
+              <h3 id="investigation-output-title">Investigation output</h3>
+              <button type="button" id="copy-investigation">Copy shown output</button>
+              <button type="button" id="download-investigation">Download full log</button>
+              <span id="investigation-copy-status" class="investigation-copy-status" role="status"></span>
+            </div>
+            <pre class="investigation-terminal" id="investigation-terminal" tabindex="0" aria-labelledby="investigation-output-title"></pre>
+          </section>
         </div>
         <ol id="events"></ol>
         <div class="log-pagination">
