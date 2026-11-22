@@ -15,6 +15,7 @@
       <a href="#security-heading">SOC</a>
       <a href="#host-heading">Host</a>
       <a href="#operations-heading">Operations</a>
+      <a href="#reliability-heading">Reliability</a>
       <a href="#activity-heading">Event log</a>
     </nav>
     <div class="bar-actions">
@@ -57,6 +58,7 @@
         <button type="button" data-scenario="deploying" aria-pressed="false">Deploying</button>
         <button type="button" data-scenario="rollback" aria-pressed="false">Rollback</button>
         <button type="button" data-scenario="integrity" aria-pressed="false">Integrity alert</button>
+        <button type="button" data-scenario="reliability" aria-pressed="false">Reliability investigation</button>
       </div>
       <div id="live-controls" class="quick-controls" role="group" aria-label="Production log views" hidden>
         <p>Filter live events</p>
@@ -215,6 +217,57 @@
         <details>
           <summary>Host resource trends</summary>
           <div id="operations-host"></div>
+        </details>
+      </div>
+    </section>
+    <section class="operations" aria-labelledby="reliability-heading">
+      <div class="section-heading"><h2 id="reliability-heading">Reliability insights</h2><p><a href="#operations-heading">Change source and history</a></p></div>
+      <div class="operations-controls">
+        <label>Slow response threshold
+          <select id="reliability-threshold"><option value="100">100 ms</option><option value="250" selected>250 ms</option><option value="500">500 ms</option><option value="1000">1,000 ms</option></select>
+        </label>
+        <label>Non-5xx target
+          <select id="reliability-target"><option value="99">99%</option><option value="99.5">99.5%</option><option value="99.9" selected>99.9%</option></select>
+        </label>
+        <button type="button" id="reliability-export" disabled>Download insights JSON</button>
+      </div>
+      <p id="reliability-scope">Waiting for a log snapshot.</p>
+      <div class="operations-grid">
+        <details open>
+          <summary>Period comparison</summary>
+          <div id="operations-comparison"></div>
+        </details>
+        <details open>
+          <summary>5xx error budget</summary>
+          <div id="operations-budget"></div>
+        </details>
+        <details>
+          <summary>Page performance</summary>
+          <div id="operations-pages"></div>
+        </details>
+        <details>
+          <summary>Exact HTTP status codes</summary>
+          <div id="operations-codes"></div>
+        </details>
+        <details>
+          <summary>Slow requests</summary>
+          <div id="operations-slow"></div>
+        </details>
+        <details>
+          <summary>Release cadence</summary>
+          <div id="operations-cadence"></div>
+        </details>
+        <details>
+          <summary>Build failure groups</summary>
+          <div id="operations-failures"></div>
+        </details>
+        <details>
+          <summary>Recurring incidents</summary>
+          <div id="operations-recurrence"></div>
+        </details>
+        <details>
+          <summary>Telemetry freshness</summary>
+          <div id="operations-freshness"></div>
         </details>
       </div>
     </section>

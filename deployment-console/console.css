@@ -253,3 +253,5 @@ meter::-moz-meter-bar{background:var(--accent)}
 .operations-table p{margin:.5rem 0;font-size:.875rem;color:var(--muted)}
 .operations-table [data-tone="error"]{color:var(--error)}
 @media(max-width:760px){.operations-grid{grid-template-columns:minmax(0,1fr)}}
+#reliability-scope{color:var(--muted);font-size:.875rem}
+@media(max-width:1120px){.dashboard-nav{flex-wrap:wrap;gap:.25rem .65rem}}

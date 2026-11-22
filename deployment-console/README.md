@@ -25,6 +25,16 @@ The Operations workspace lets you scope the retained log by source and look-back
 - Triage warnings and errors and mark or reopen incidents during the current page session.
 - Copy a handoff report with release evidence, incident counts, and aggregate traffic metrics.
 
+Reliability insights follows the source and history controls in the Operations workspace:
+
+- Compare retained request volume, 5xx rate, origin latency, and incident volume with the preceding window.
+- Inspect page performance, exact HTTP status codes, and requests that exceed a selectable latency threshold.
+- Estimate the remaining 5xx error budget against a selectable non-5xx target using retained responses.
+- Review publish cadence, recurring build failures, repeated incidents, and the age of each telemetry feed.
+- Download the displayed insights as JSON with scope and thresholds. The export omits client IPs and incident messages.
+
+Use the Reliability investigation demo scenario to explore slow requests, build failures, and recurring incidents.
+
 The console and demo use the same frontend files. On the deployment hostname the frontend reads the protected status API. On the portfolio it loads browser-local sample data with no requests to production. The public status API path returns 404.
 
 The portfolio's CI tests both modes. The portfolio deployment publishes the public demo. The authenticated dashboard has its own release and can be published manually after validation on `main`. Vite includes content hashes in the asset names so an HTML release can request its exact assets through the CDN.

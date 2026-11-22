@@ -418,4 +418,53 @@ if (live) {
   assert.match(copiedText, /Rollbacks: 1/);
   assert.doesNotMatch(copiedText, /203\.0\.113/);
 }
+assert.match(operations("freshness").textContent, /Status API/);
+assert.equal(byId("reliability-export").disabled, false);
+if (live) {
+  assert.match(operations("budget").textContent, /No retained HTTP responses/);
+} else {
+  scenario("reliability");
+  changeOperations("range", "1");
+  const row = (name, label) => [...operations(name).querySelectorAll("tbody tr")]
+    .find(item => item.cells[0].textContent === label);
+  assert.deepEqual([...row("comparison", "HTTP responses").cells].map(cell => cell.textContent),
+    ["HTTP responses", "3", "1", "+2"]);
+  assert.deepEqual([...row("budget", "catalog.example").cells].map(cell => cell.textContent),
+    ["catalog.example", "3", "1", "0", "-1", "Exceeded"]);
+  assert.match(operations("pages").textContent, /Catalogue10420\.0 ms/);
+  assert.match(operations("codes").textContent, /catalog\.example5031/);
+  assert.match(operations("failures").textContent, /server memory limit2/);
+  assert.match(operations("recurrence").textContent, /server memory limit2/);
+  assert.equal(operations("slow").querySelectorAll("tbody tr").length, 2);
+  const threshold = byId("reliability-threshold");
+  threshold.value = "500";
+  threshold.dispatchEvent(new window.Event("change"));
+  assert.equal(operations("slow").querySelectorAll("tbody tr").length, 1);
+  operations("slow").querySelector("button").click();
+  assert.equal(byId("investigation").hidden, false);
+  byId("close-investigation").click();
+  changeOperations("range", "168");
+  assert.match(operations("cadence").textContent, /catalog\.example2/);
+  changeOperations("range", "336");
+  assert.match(operations("comparison").textContent, /outside the 14-day retention period/);
+
+  const anchorClick = window.HTMLAnchorElement.prototype.click;
+  let downloaded;
+  window.HTMLAnchorElement.prototype.click = function () {
+    downloaded = { filename: this.download, href: this.href };
+  };
+  try {
+    byId("reliability-export").click();
+    assert.equal(downloaded.filename, "reliability-insights.json");
+    const content = await (await fetchBlob(downloaded.href)).text();
+    const data = JSON.parse(content);
+    assert.equal(data.scope, "catalog.example");
+    assert.equal(data.slowThresholdMs, 500);
+    assert.equal(Object.keys(data.tables).length, 9);
+    assert.doesNotMatch(content, /203\.0\.113|server memory limit/);
+    assert.ok(data.tables.failures.rows.length);
+  } finally {
+    window.HTMLAnchorElement.prototype.click = anchorClick;
+  }
+}
 console.log(`Deployment console ${live ? "production" : "demo"} checks passed.`);
