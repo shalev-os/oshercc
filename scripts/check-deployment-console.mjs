@@ -467,4 +467,65 @@ if (live) {
     window.HTMLAnchorElement.prototype.click = anchorClick;
   }
 }
+const choice = byId("report-choice");
+const category = byId("report-category");
+const search = byId("report-search");
+const selectReport = id => {
+  choice.value = id;
+  choice.dispatchEvent(new window.Event("change"));
+};
+const reportIds = [...choice.options].map(option => option.value);
+assert.equal(reportIds.length, 70);
+assert.equal(new Set(reportIds).size, 70);
+assert.equal(category.options.length, 8);
+for (const id of reportIds) {
+  selectReport(id);
+  assert.match(byId("report-scope").textContent, /matching retained events/);
+  assert.equal(byId("report-export").disabled, false);
+}
+category.value = "HTTP outcomes";
+category.dispatchEvent(new window.Event("change"));
+assert.equal(choice.options.length, 10);
+search.value = "unavailable";
+search.dispatchEvent(new window.Event("input"));
+assert.equal(choice.value, "unavailable");
+assert.equal(choice.options.length, 1);
+
+if (live) {
+  assert.match(operations("report-events").textContent, /No matching events/);
+} else {
+  assert.match(byId("report-scope").textContent, /catalog\.example.*2 matching/);
+  operations("report-events").querySelector("button").click();
+  assert.equal(byId("investigation").hidden, false);
+  assert.match(byId("investigation-anchor").textContent, /Page loaded/);
+  byId("close-investigation").click();
+  changeOperations("range", "24");
+  assert.match(byId("report-scope").textContent, /1 matching/);
+  changeOperations("source", "portfolio.example");
+  assert.match(byId("report-scope").textContent, /0 matching/);
+  changeOperations("source", "catalog.example");
+
+  const anchorClick = window.HTMLAnchorElement.prototype.click;
+  let summaryUrl;
+  window.HTMLAnchorElement.prototype.click = function () {
+    assert.equal(this.download, "console-unavailable.json");
+    summaryUrl = this.href;
+  };
+  try {
+    byId("report-export").click();
+    const summary = await (await fetchBlob(summaryUrl)).json();
+    assert.equal(summary.source, "catalog.example");
+    assert.equal(summary.matches, 1);
+    assert.equal(summary.rows[0].count, 1);
+    assert.doesNotMatch(JSON.stringify(summary), /clientIp|203\.0\.113/);
+  } finally {
+    window.HTMLAnchorElement.prototype.click = anchorClick;
+  }
+}
+search.value = "no-such-report";
+search.dispatchEvent(new window.Event("input"));
+assert.equal(choice.disabled, true);
+assert.equal(byId("report-export").disabled, true);
+assert.match(byId("report-scope").textContent, /No reports match/);
+
 console.log(`Deployment console ${live ? "production" : "demo"} checks passed.`);

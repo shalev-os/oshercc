@@ -35,6 +35,8 @@ Reliability insights follows the source and history controls in the Operations w
 
 Use the Reliability investigation demo scenario to explore slow requests, build failures, and recurring incidents.
 
+The Report explorer offers 70 reports across release delivery, builds and dependencies, HTTP outcomes, response performance, security and integrity, host services, and telemetry coverage. Search the catalog or filter by category, then use the Operations source and history controls to scope the report. Results show grouped event counts and, where a measurement is available, the sample count, average, nearest-rank P95, and maximum. Open the latest matching events in the investigation timeline or download the complete aggregate summary as JSON with the report window and collection time. Summary exports omit raw events, messages, and client IPs.
+
 The console and demo use the same frontend files. On the deployment hostname the frontend reads the protected status API. On the portfolio it loads browser-local sample data with no requests to production. The public status API path returns 404.
 
 The portfolio's CI tests both modes. The portfolio deployment publishes the public demo. The authenticated dashboard has its own release and can be published manually after validation on `main`. Vite includes content hashes in the asset names so an HTML release can request its exact assets through the CDN.

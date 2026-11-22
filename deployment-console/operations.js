@@ -1,3 +1,4 @@
+import { renderReports } from "./reports.js";
 import { configureReliability, renderReliability } from "./reliability.js";
 
 const byId = (id) => document.getElementById(id);
@@ -142,6 +143,10 @@ function render() {
   renderReliability({
     events, published, incidents, start, end, snapshot, status, source: source.value,
     table, action: event => button("Investigate", () => investigate(event), eventKey(event) + ":investigate"),
+  });
+  renderReports({
+    events, start, end, updated: snapshot.updated, source: source.value, table,
+    action: event => button("Investigate", () => investigate(event), eventKey(event) + ":investigate"),
   });
   const sites = status.sites.filter(site => !source.value || source.value === site.domain);
   const verification = sites.map(site => {

@@ -16,6 +16,7 @@
       <a href="#host-heading">Host</a>
       <a href="#operations-heading">Operations</a>
       <a href="#reliability-heading">Reliability</a>
+      <a href="#reports-heading">Reports</a>
       <a href="#activity-heading">Event log</a>
     </nav>
     <div class="bar-actions">
@@ -269,6 +270,25 @@
           <summary>Telemetry freshness</summary>
           <div id="operations-freshness"></div>
         </details>
+      </div>
+    </section>
+    <section class="operations" aria-labelledby="reports-heading">
+      <div class="section-heading">
+        <h2 id="reports-heading">Report explorer</h2>
+        <p><a href="#operations-heading">Change source and history</a></p>
+      </div>
+      <div class="operations-controls report-controls">
+        <label>Category <select id="report-category"><option value="">All categories</option></select></label>
+        <label>Find a report <input type="search" id="report-search"></label>
+        <label>Report <select id="report-choice"></select></label>
+        <button type="button" id="report-export" disabled>Download summary JSON</button>
+      </div>
+      <p id="report-scope" role="status">Waiting for a log snapshot.</p>
+      <div class="report-results">
+        <h3 id="report-title"></h3>
+        <div id="operations-report-summary"></div>
+        <h3>Latest matching events</h3>
+        <div id="operations-report-events"></div>
       </div>
     </section>
     <section class="activity" aria-labelledby="activity-heading">

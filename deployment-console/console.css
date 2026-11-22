@@ -255,3 +255,9 @@ meter::-moz-meter-bar{background:var(--accent)}
 @media(max-width:760px){.operations-grid{grid-template-columns:minmax(0,1fr)}}
 #reliability-scope{color:var(--muted);font-size:.875rem}
 @media(max-width:1120px){.dashboard-nav{flex-wrap:wrap;gap:.25rem .65rem}}
+.report-controls input{min-width:0;width:12rem;border:1px solid var(--control-line);padding:.55rem .65rem;font:inherit;color:inherit;background:var(--surface)}
+.report-controls #report-choice{max-width:min(24rem,65vw)}
+#report-scope{color:var(--muted);font-size:.875rem}
+.report-results{border:1px solid var(--line);background:var(--panel);padding:.85rem 1rem}
+.report-results h3{font-size:1rem;margin:.25rem 0 .5rem}
+.report-results h3:not(:first-child){margin-top:1.25rem}
