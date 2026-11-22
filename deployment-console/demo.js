@@ -22,6 +22,7 @@ const scenarios = {
   healthy: "All sample sites are live and the latest file integrity check passed.",
   rollback: "The candidate failed its health check. The console shows the failure while the prior release serves traffic.",
   integrity: "AIDE flagged a baseline change for review. All sample sites are still serving traffic.",
+  reliability: "The catalogue has slow origin responses and repeated build errors. Open Reliability insights to investigate.",
 };
 
 function scenarioData(mode) {
@@ -88,6 +89,19 @@ function scenarioData(mode) {
       event(-30, "server", "SOC", "warning", "Fail2ban blocked 3 distinct SSH sources in a 15-minute window.", { distinctSources: 3, windowMinutes: 15, source: "Fail2ban" }),
       event(-30, "server", "Fail2ban", "warning", "Fail2ban blocked an SSH source.", { jail: "sshd", action: "blocked", sourceIp: "198.51.100.26" }),
       event(-55, "server", "Fail2ban", "warning", "Fail2ban blocked an SSH source.", { jail: "sshd", action: "blocked", sourceIp: "198.51.100.25" }),
+    );
+  }
+  if (mode === "reliability") {
+    const failure = minutes => event(minutes, catalog, "Build", "error", "Build hit the server memory limit",
+      { resource: "memory", outcome: "terminated" });
+    entries.push(
+      failure(-12), failure(-28),
+      event(-10, catalog, "Visits", "info", "Page loaded",
+        { page: "Home page", clientIp: "203.0.113.58", httpStatus: 503, originResponseMs: 900, responseBytes: 217 }),
+      event(-22, catalog, "Visits", "info", "Page loaded",
+        { page: "Catalogue", httpStatus: 200, originResponseMs: 420, responseBytes: 4096 }),
+      event(-72, catalog, "Visits", "info", "Page loaded",
+        { page: "Catalogue", httpStatus: 200, originResponseMs: 60, responseBytes: 4096 }),
     );
   }
   return { sampled: time(0), sites, security, host, events: { entries, updated: time(0) } };

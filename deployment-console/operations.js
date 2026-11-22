@@ -1,3 +1,5 @@
+import { configureReliability, renderReliability } from "./reliability.js";
+
 const byId = (id) => document.getElementById(id);
 const source = byId("operations-source");
 const range = byId("operations-range");
@@ -137,6 +139,10 @@ function render() {
   const deferrals = events.filter(event => event.component === "Build" && event.details?.outcome === "deferred");
   const incidents = events.filter(event => event.level === "error" || event.level === "warning");
   const pending = renderIncidents(incidents);
+  renderReliability({
+    events, published, incidents, start, end, snapshot, status, source: source.value,
+    table, action: event => button("Investigate", () => investigate(event), eventKey(event) + ":investigate"),
+  });
   const sites = status.sites.filter(site => !source.value || source.value === site.domain);
   const verification = sites.map(site => {
     const evidence = published.find(event => event.site === site.domain && event.details?.commit === site.release);
@@ -203,6 +209,7 @@ function render() {
   copy.disabled = false;
 }
 
+configureReliability(render);
 source.addEventListener("change", render);
 range.addEventListener("change", render);
 includeReviewed.addEventListener("change", render);

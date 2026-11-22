@@ -1,3 +1,4 @@
+import { downloadFile } from "./download.js";
 import { updateOperationsEvents, updateOperationsStatus } from "./operations.js";
 
 const byId = (id) => document.getElementById(id);
@@ -282,15 +283,6 @@ function eventContext(event) {
   return context;
 }
 
-function downloadEvents(content, type, filename) {
-  const url = URL.createObjectURL(new Blob([content], { type }));
-  const download = document.createElement("a");
-  download.href = url;
-  download.download = filename;
-  download.click();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
-}
-
 function resetEventRows() {
   inspectedEvent = null;
   visibleCount = pageSize();
@@ -496,7 +488,7 @@ function renderEvents() {
       download.type = "button";
       download.className = "event-download";
       download.textContent = "Download event JSON";
-      download.addEventListener("click", () => downloadEvents(json.textContent, "application/json", "deployment-event.json"));
+      download.addEventListener("click", () => downloadFile(json.textContent, "application/json", "deployment-event.json"));
       const copy = document.createElement("button");
       copy.type = "button";
       copy.className = "event-copy-summary";
@@ -843,10 +835,10 @@ byId("show-more").addEventListener("click", () => {
   renderEvents();
 });
 byId("export-events").addEventListener("click", () => {
-  downloadEvents(filteredJson(), "application/json", "deployment-events.json");
+  downloadFile(filteredJson(), "application/json", "deployment-events.json");
 });
 byId("export-csv").addEventListener("click", () => {
-  downloadEvents(filteredCsv(), "text/csv;charset=utf-8", "deployment-events.csv");
+  downloadFile(filteredCsv(), "text/csv;charset=utf-8", "deployment-events.csv");
 });
 byId("json-panel").addEventListener("toggle", () => {
   if (byId("json-panel").open) byId("event-json").textContent = filteredJson();
