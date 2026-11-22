@@ -35,7 +35,7 @@ h2[id],#overview{scroll-margin-top:8rem}
 .site-mark{display:grid;place-items:center;background:var(--selected);border:1px solid #c4cffd;color:var(--accent)}
 #connection{font-size:.875rem;color:var(--green)}
 #connection[data-stale="true"]{color:var(--warning)}
-button,.workflow,select,.log-controls input{border-radius:var(--control-radius)}
+button,.workflow,select,input[type="search"]{border-radius:var(--control-radius)}
 button,.workflow{border:1px solid var(--control-line);color:inherit;background:var(--surface);padding:.6rem .95rem;font:inherit;cursor:pointer}
 .activity-chart button,.host-activity-grid button,summary{border-radius:var(--panel-radius)}
 #refresh{background:var(--accent);border-color:var(--accent);color:white}
