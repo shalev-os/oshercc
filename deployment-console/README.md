@@ -16,6 +16,15 @@ An interactive demo of the private dashboard that monitors the Linux and Nginx d
 - Inspect systemd service jobs, host service warnings, and kernel alerts as structured events.
 - Switch between a healthy release, an active deployment, a rollback, and an integrity alert.
 
+The Operations workspace lets you scope the retained log by source and look-back window and provides ten workflows:
+
+- Verify each serving commit against its recorded publish health check.
+- Browse release history, rollbacks, and CI deferrals in dedicated views with links into the event investigation timeline.
+- Compare build duration percentiles, HTTP status classes and 5xx rates, and origin latency percentiles by site.
+- Track latest, peak, and change for up to 120 host samples collected while the page is open.
+- Triage warnings and errors and mark or reopen incidents during the current page session.
+- Copy a handoff report with release evidence, incident counts, and aggregate traffic metrics.
+
 The console and demo use the same frontend files. On the deployment hostname the frontend reads the protected status API. On the portfolio it loads browser-local sample data with no requests to production. The public status API path returns 404.
 
 The portfolio's CI tests both modes. The portfolio deployment publishes the public demo. The authenticated dashboard has its own release and can be published manually after validation on `main`. Vite includes content hashes in the asset names so an HTML release can request its exact assets through the CDN.

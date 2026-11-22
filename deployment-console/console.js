@@ -1,3 +1,5 @@
+import { updateOperationsEvents, updateOperationsStatus } from "./operations.js";
+
 const byId = (id) => document.getElementById(id);
 const dateFormat = new Intl.DateTimeFormat(undefined, {
   dateStyle: "medium", timeStyle: "short",
@@ -355,6 +357,14 @@ function renderSourceBreakdown(events, activeSource) {
     .focus({ preventScroll: true });
 }
 
+function openInvestigation(event) {
+  clearEventFilters();
+  investigation = { event, key: JSON.stringify(event), time: Date.parse(event.time), previousOrder: byId("event-order").value };
+  byId("event-order").value = "oldest";
+  resetEventRows();
+  byId("investigation-radius").focus();
+}
+
 function renderEvents() {
   const phrase = byId("event-query").value.trim().toLowerCase();
   const site = byId("event-site").value;
@@ -507,13 +517,7 @@ function renderEvents() {
       investigate.type = "button";
       investigate.className = "event-investigate";
       investigate.textContent = "Investigate around this event";
-      investigate.addEventListener("click", () => {
-        clearEventFilters();
-        investigation = { event, key, time: Date.parse(event.time), previousOrder: byId("event-order").value };
-        byId("event-order").value = "oldest";
-        resetEventRows();
-        byId("investigation-radius").focus();
-      });
+      investigate.addEventListener("click", () => openInvestigation(event));
       actions.append(investigate, pin, download, copy, copyStatus);
       item.append(eventNavigation(index), actions, json);
     }
@@ -676,15 +680,18 @@ export function renderStatus(data) {
   }
   sampledTime = Date.parse(data.sampled);
   clockOffset = sampledTime - Date.now();
+  updateOperationsStatus(data, openInvestigation);
   renderEventSnapshot(data.events);
   updateBuildCountdowns();
 }
 
 function renderEventSnapshot(events) {
   if (eventsUpdated && (!events.updated || Date.parse(events.updated) < Date.parse(eventsUpdated))) {
+    updateOperationsEvents({ updated: eventsUpdated, entries: eventEntries });
     renderEvents();
     return;
   }
+  updateOperationsEvents(events);
   sampledTime = Math.max(sampledTime, Date.parse(events.updated) || 0);
   eventEntries = events.entries;
   const sourceSelect = byId("event-site");

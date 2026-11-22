@@ -48,6 +48,8 @@ function scenarioData(mode) {
     event(-36, portfolio, "Build", "success", "Vite build completed", { tool: "Vite", durationSeconds: 8.4, outcome: "built" }),
     event(-37, portfolio, "Deploy", "info", "Deploy started", { phase: "started", trigger: "GitHub Actions" }),
     event(-37, portfolio, "GitHub Actions", "info", "Authenticated signal received", { trigger: "GitHub Actions", phase: "accepted" }),
+    event(-1474, catalog, "Visits", "warning", "Origin returned an error", { page: "Home page", clientIp: "203.0.113.91", httpStatus: 503, originResponseMs: 330, responseBytes: 217, originProtocol: "HTTP/1.1" }),
+    event(-1476, catalog, "Build", "warning", "Release 3a91fc8 is waiting for CI (in_progress)", { commit: "3a91fc8", ciStatus: "in_progress", outcome: "deferred" }),
     event(-82, catalog, "Deploy", "success", "Release 84be103 is serving traffic", { commit: "84be103", outcome: "published", healthCheck: "passed" }),
     event(-83, catalog, "Build", "success", "Vite build completed", { tool: "Vite", durationSeconds: 11.2, outcome: "built" }),
     event(-105, "server", "Fail2ban", "warning", "Fail2ban blocked an SSH source.", { jail: "sshd", action: "blocked", sourceIp: "198.51.100.24" }),
