@@ -296,7 +296,7 @@ if (live) {
   assert.equal(document.querySelectorAll("[data-range]").length, 6);
   document.querySelector('[data-range="48"]').click();
   assert.equal(byId("event-range").value, "48");
-  assert.match(byId("event-count").textContent, /of 13 events/);
+  assert.match(byId("event-count").textContent, /of 15 events/);
   byId("clear-filters").click();
   byId("activity-chart").children[0].click();
   assert.equal(events().length, Math.min(5, Number(byId("activity-chart").children[0].querySelector("strong").textContent)));
@@ -305,17 +305,17 @@ if (live) {
   const category = byId("event-category");
   category.value = "Visits";
   category.dispatchEvent(new dom.window.Event("input"));
-  assert.equal(events().length, 4);
+  assert.equal(events().length, 5);
   events()[0].querySelector(".event-inspect").click();
   assert.equal(JSON.parse(events()[0].querySelector(".event-json").textContent).details.httpStatus, 200);
   byId("clear-filters").click();
   const range = byId("event-range");
   range.value = "48";
   range.dispatchEvent(new dom.window.Event("input"));
-  assert.match(byId("event-count").textContent, /of 13 events/);
+  assert.match(byId("event-count").textContent, /of 15 events/);
   range.value = "336";
   range.dispatchEvent(new dom.window.Event("input"));
-  assert.match(byId("event-count").textContent, /of 15 events/);
+  assert.match(byId("event-count").textContent, /of 17 events/);
   byId("clear-filters").click();
   const manualCard = document.querySelector('[data-deploy-target="console.example"]').closest(".card");
   assert.match(manualCard.querySelector(".build-window").textContent, /Deployment schedule/);
@@ -344,9 +344,9 @@ if (live) {
   assert.equal(matching[0].details.rollback, "restored");
   const warning = document.querySelector('[data-severity="warning"]');
   warning.click();
-  assert.equal(events().length, 2);
+  assert.equal(events().length, 4);
   assert.equal(warning.getAttribute("aria-pressed"), "true");
-  assert.deepEqual(JSON.parse(byId("event-json").textContent).map(event => event.level), ["error", "warning"]);
+  assert.deepEqual(JSON.parse(byId("event-json").textContent).map(event => event.level), ["error", "warning", "warning", "warning"]);
   warning.click();
   events()[0].querySelector(".event-inspect").click();
   assert.match(events()[0].querySelector(".event-context").textContent, /health checkfailed/i);
@@ -374,5 +374,48 @@ if (live) {
   assert.ok(JSON.parse(byId("event-json").textContent).some(event => event.component === "Visits"));
   assert.match(byId("attention-items").textContent, /File integrity changes detected/);
   assert.equal(byId("integrity-status").textContent, "Changes detected");
+}
+const operations = (name) => byId("operations-" + name);
+const changeOperations = (name, value) => {
+  operations(name).value = value;
+  operations(name).dispatchEvent(new window.Event("change"));
+};
+assert.match(operations("host").textContent, /CPU load \/ core/);
+assert.equal(operations("copy").disabled, false);
+
+if (live) {
+  assert.match(operations("verification").textContent, /0123456789abOnline/);
+  assert.match(operations("latency").textContent, /No origin latency samples/);
+} else {
+  scenario("healthy");
+  assert.match(operations("verification").textContent, /Health check passed/);
+  assert.match(operations("builds").textContent, /8\.4 s/);
+  assert.match(operations("queue").textContent, /No CI deferrals/);
+  changeOperations("range", "168");
+  changeOperations("source", "catalog.example");
+  assert.match(operations("releases").textContent, /f82306c/);
+  assert.match(operations("queue").textContent, /3a91fc8in_progress/);
+  assert.match(operations("traffic").textContent, /50\.0%/);
+  assert.match(operations("latency").textContent, /330\.0 ms/);
+  assert.doesNotMatch(operations("traffic").textContent, /portfolio\.example/);
+  scenario("rollback");
+  assert.match(operations("rollbacks").textContent, /restored/);
+  operations("rollbacks").querySelector("button").click();
+  assert.equal(byId("investigation").hidden, false);
+  assert.match(byId("investigation-anchor").textContent, /Previous release restored/);
+  byId("close-investigation").click();
+  const incidentRow = () => [...operations("incidents").querySelectorAll("tbody tr")]
+    .find(row => row.textContent.includes("Previous release restored"));
+  incidentRow().lastElementChild.lastElementChild.click();
+  assert.equal(incidentRow(), undefined);
+  operations("reviewed").click();
+  assert.equal(incidentRow().lastElementChild.lastElementChild.textContent, "Reopen");
+  incidentRow().lastElementChild.lastElementChild.click();
+  assert.equal(incidentRow().lastElementChild.lastElementChild.textContent, "Mark reviewed");
+  operations("copy").click();
+  await new Promise(setImmediate);
+  assert.match(copiedText, /Scope: catalog\.example/);
+  assert.match(copiedText, /Rollbacks: 1/);
+  assert.doesNotMatch(copiedText, /203\.0\.113/);
 }
 console.log(`Deployment console ${live ? "production" : "demo"} checks passed.`);

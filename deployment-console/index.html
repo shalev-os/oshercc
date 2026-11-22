@@ -14,6 +14,7 @@
       <a href="#sites-heading">Sites</a>
       <a href="#security-heading">SOC</a>
       <a href="#host-heading">Host</a>
+      <a href="#operations-heading">Operations</a>
       <a href="#activity-heading">Event log</a>
     </nav>
     <div class="bar-actions">
@@ -159,6 +160,62 @@
             <tbody id="traffic-rows"></tbody>
           </table>
         </div>
+      </div>
+    </section>
+    <section class="operations" aria-labelledby="operations-heading">
+      <div class="section-heading"><h2 id="operations-heading">Operations workspace</h2></div>
+      <div class="operations-controls">
+        <label>Source <select id="operations-source"><option value="">All sources</option></select></label>
+        <label>History <select id="operations-range">
+          <option value="1">Last hour</option>
+          <option value="24" selected>Last 24 hours</option>
+          <option value="168">Last 7 days</option>
+          <option value="336">Last 14 days</option>
+        </select></label>
+        <button type="button" id="operations-copy" disabled>Copy handoff report</button>
+        <span id="operations-report-status" role="status"></span>
+      </div>
+      <p id="operations-coverage">Waiting for a log snapshot.</p>
+      <div class="operations-grid">
+        <details open>
+          <summary>Release verification</summary>
+          <div id="operations-verification"></div>
+        </details>
+        <details open>
+          <summary>Incident triage</summary>
+          <div class="operations-controls">
+            <label><input type="checkbox" id="operations-reviewed"> Include reviewed incidents</label>
+          </div>
+          <div id="operations-incidents"></div>
+        </details>
+        <details>
+          <summary>Release history</summary>
+          <div id="operations-releases"></div>
+        </details>
+        <details>
+          <summary>Rollbacks</summary>
+          <div id="operations-rollbacks"></div>
+        </details>
+        <details>
+          <summary>CI deferrals</summary>
+          <div id="operations-queue"></div>
+        </details>
+        <details>
+          <summary>Build performance</summary>
+          <div id="operations-builds"></div>
+        </details>
+        <details>
+          <summary>HTTP response breakdown</summary>
+          <div id="operations-traffic"></div>
+        </details>
+        <details>
+          <summary>Origin latency</summary>
+          <div id="operations-latency"></div>
+        </details>
+        <details>
+          <summary>Host resource trends</summary>
+          <div id="operations-host"></div>
+        </details>
       </div>
     </section>
     <section class="activity" aria-labelledby="activity-heading">
