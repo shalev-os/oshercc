@@ -203,15 +203,38 @@ if (live) {
   assert.equal(events().length, 3);
   assert.equal(events()[2].querySelector("time").dateTime, firstTime);
   assert.equal(events()[2].hasAttribute("data-investigation-anchor"), true);
+  const terminal = byId("investigation-terminal");
+  assert.match(terminal.textContent, /Investigation window: ±15m/);
+  assert.match(terminal.textContent, /SELECTED EVENT/);
+  assert.ok(terminal.textContent.includes(firstTime));
+  assert.match(terminal.textContent, /SURROUNDING EVENTS \(2\)/);
+  byId("copy-investigation").click();
+  await new Promise(setImmediate);
+  assert.equal(copiedText, terminal.textContent);
   const radius = byId("investigation-radius");
   radius.value = "60";
   radius.dispatchEvent(new window.Event("change"));
   assert.match(byId("event-count").textContent, /of 7 events/);
+  assert.match(terminal.textContent, /Investigation window: ±60m/);
+  assert.match(terminal.textContent, /SURROUNDING EVENTS \(6\)/);
+  const investigationAnchorClick = window.HTMLAnchorElement.prototype.click;
+  let investigationDownload;
+  window.HTMLAnchorElement.prototype.click = function () {
+    investigationDownload = { filename: this.download, href: this.href };
+  };
+  try {
+    byId("download-investigation").click();
+    assert.equal(investigationDownload.filename, "investigation.log.txt");
+    assert.equal(await (await fetchBlob(investigationDownload.href)).text(), terminal.textContent);
+  } finally {
+    window.HTMLAnchorElement.prototype.click = investigationAnchorClick;
+  }
   const bucketCount = [...byId("activity-chart").querySelectorAll("strong")]
     .reduce((total, bucket) => total + Number(bucket.textContent), 0);
   assert.equal(bucketCount, 7);
   byId("close-investigation").click();
   assert.equal(byId("investigation").hidden, true);
+  assert.equal(terminal.textContent, "");
   assert.equal(order.value, "newest");
   document.querySelector('[data-event-preset="Fail2ban"]').click();
   assert.equal(events().length, 1);
