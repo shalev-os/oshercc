@@ -409,9 +409,10 @@ function renderEvents() {
   byId("event-count").textContent = matchingEvents.length
     ? `Showing ${rows.length} of ${matchingEvents.length} events`
     : pinnedOnly && !pinnedEvents.size ? "No pinned events" : "No matching events";
-  byId("reset-empty-results").hidden = Boolean(matchingEvents.length) ||
-    !(phrase || site || category || range || selectedWindow !== null || relatedFilter ||
-      severities.size || hidePageLoads || pinnedOnly || investigation);
+  const filtersActive = Boolean(phrase || site || category || range || selectedWindow !== null ||
+    relatedFilter || severities.size || hidePageLoads || pinnedOnly || investigation);
+  byId("reset-empty-results").hidden = !filtersActive || matchingEvents.length > 0;
+  byId("clear-filters").hidden = !filtersActive || matchingEvents.length === 0;
   const showMore = byId("show-more");
   const nextCount = Math.min(pageSize(), matchingEvents.length - rows.length);
   showMore.hidden = nextCount === 0;

@@ -12,12 +12,12 @@
     <a class="brand" href="#overview" aria-label="Osher Deployment Console overview"><span>SO<span class="brand-dot">.</span></span><span class="brand-sub">Deployment Console</span></a>
     <nav class="dashboard-nav" aria-label="Dashboard navigation">
       <a href="#sites-heading">Sites</a>
-      <a href="#security-heading">SOC</a>
+      <a href="#activity-heading">Events</a>
+      <a href="#security-heading">Security</a>
       <a href="#host-heading">Host</a>
       <a href="#operations-heading">Operations</a>
       <a href="#reliability-heading">Reliability</a>
       <a href="#reports-heading">Reports</a>
-      <a href="#activity-heading">Event log</a>
     </nav>
     <div class="bar-actions">
       <a id="portfolio-link" href="/#projects" hidden>Portfolio</a>
@@ -61,30 +61,108 @@
         <button type="button" data-scenario="integrity" aria-pressed="false">Integrity alert</button>
         <button type="button" data-scenario="reliability" aria-pressed="false">Reliability investigation</button>
       </div>
-      <div id="live-controls" class="quick-controls" role="group" aria-label="Production log views" hidden>
-        <p>Filter live events</p>
-        <button type="button" data-live-view="overview">All events</button>
-        <button type="button" data-live-view="builds">Builds</button>
-        <button type="button" data-live-view="rollbacks">Rollbacks</button>
-        <button type="button" data-live-view="integrity">Integrity alerts</button>
-        <button type="button" data-live-view="visits">Visits</button>
-      </div>
       <div class="metrics" aria-label="Production summary">
         <div><strong id="live">–</strong><span>Sites online</span></div>
         <div><strong id="building">–</strong><span>Deploying</span></div>
         <div><strong id="fallback">–</strong><span>Fallback timers</span></div>
       </div>
     </section>
-    <section aria-labelledby="attention-heading">
-      <div class="section-heading"><h2 id="attention-heading">Needs attention</h2></div>
-      <div class="card health-summary">
-        <p id="attention-status" role="status">Waiting for status data</p>
-        <ul id="attention-items" hidden></ul>
-      </div>
+    <section class="health-summary attention-summary" aria-labelledby="attention-heading">
+      <h2 id="attention-heading">Needs attention</h2>
+      <p id="attention-status" role="status">Waiting for status data</p>
+      <ul id="attention-items" hidden></ul>
     </section>
     <section aria-labelledby="sites-heading">
       <div class="section-heading"><h2 id="sites-heading">Sites</h2><p id="sample"></p></div>
       <div class="sites production-grid" id="sites"></div>
+    </section>
+    <section class="activity" aria-labelledby="activity-heading">
+      <div class="section-heading"><h2 id="activity-heading">Event log</h2><div class="event-heading-actions"><p id="event-stream" role="status" hidden></p><p id="event-update"></p></div></div>
+      <div class="log-panel">
+        <div id="live-controls" class="quick-controls" role="group" aria-label="Production log views" hidden>
+          <button type="button" data-live-view="overview">All events</button>
+          <button type="button" data-live-view="builds">Builds</button>
+          <button type="button" data-live-view="rollbacks">Rollbacks</button>
+          <button type="button" data-live-view="integrity">Integrity alerts</button>
+          <button type="button" data-live-view="visits">Visits</button>
+        </div>
+        <div class="log-controls log-primary">
+          <label><span>Search <kbd aria-hidden="true">/</kbd></span><input id="event-query" type="search" aria-keyshortcuts="/" placeholder="Release, component, or message"></label>
+          <label>Source<select id="event-site"><option value="">All sources</option><option value="server">Server</option></select></label>
+          <label>Time range<select id="event-range"><option value="">All retained events</option><option value="1">Last hour</option><option value="24">Last 24 hours</option><option value="48">Last 48 hours</option><option value="168">Last 7 days</option><option value="336">Last 14 days</option></select></label>
+        </div>
+        <div class="log-toolbar">
+          <p class="log-count" id="event-count" role="status"></p>
+          <button type="button" id="reset-empty-results" hidden>Reset filters</button>
+          <button type="button" id="clear-filters" hidden>Clear filters</button>
+        </div>
+        <details class="log-options">
+          <summary>More filters and tools</summary>
+          <div class="log-controls">
+            <label>Category<select id="event-category"><option value="">All categories</option></select></label>
+            <label>Order<select id="event-order"><option value="newest">Newest first</option><option value="oldest">Oldest first</option></select></label>
+            <label>Events to show<select id="event-page-size"><option value="5">5</option><option value="10">10</option><option value="25">25</option><option value="50">50</option></select></label>
+          </div>
+          <div class="log-shortcuts" role="group" aria-label="Event filter presets">
+            <span>Quick filters</span>
+            <button type="button" data-event-preset="" data-levels="warning error">Warnings and errors</button>
+            <button type="button" data-event-preset="Deploy" data-levels="error">Failed deployments</button>
+            <button type="button" data-event-preset="Fail2ban" data-levels="warning">SSH blocks</button>
+            <button type="button" data-event-preset="AIDE" data-levels="warning">Integrity warnings</button>
+          </div>
+          <nav class="log-shortcuts" aria-label="Filter event log by time">
+            <span>Show events from</span>
+            <button type="button" data-range="" aria-pressed="true">All retained</button>
+            <button type="button" data-range="1" aria-pressed="false">1 hour</button>
+            <button type="button" data-range="24" aria-pressed="false">24 hours</button>
+            <button type="button" data-range="48" aria-pressed="false">48 hours</button>
+            <button type="button" data-range="168" aria-pressed="false">7 days</button>
+            <button type="button" data-range="336" aria-pressed="false">14 days</button>
+          </nav>
+          <div class="log-shortcuts" id="source-breakdown" role="group" aria-label="Event counts by source" hidden></div>
+          <div class="log-display-controls">
+            <button type="button" id="hide-page-loads" aria-pressed="false">Hide page loads</button>
+            <button type="button" id="pinned-events" aria-pressed="false">Pinned only <span id="pinned-count">0</span></button>
+            <button type="button" id="event-utc" aria-pressed="false">UTC timestamps</button>
+            <button type="button" id="export-events" disabled>Export JSON</button>
+            <button type="button" id="export-csv" disabled>Export CSV</button>
+          </div>
+          <div class="log-overview">
+            <div class="log-overview-heading"><h3>Activity volume</h3></div>
+            <div id="activity-chart" class="activity-chart" aria-label="Events by four-hour period"></div>
+            <div class="severity-summary" role="group" aria-label="Filter by event severity">
+              <button type="button" data-severity="info" aria-pressed="false">Info <strong>0</strong></button>
+              <button type="button" data-severity="success" aria-pressed="false">Success <strong>0</strong></button>
+              <button type="button" data-severity="warning" aria-pressed="false">Warning <strong>0</strong></button>
+              <button type="button" data-severity="error" aria-pressed="false">Error <strong>0</strong></button>
+            </div>
+          </div>
+        </details>
+        <div class="related-filter" id="related-filter" hidden>
+          <span>Related events: <strong id="related-value"></strong></span>
+          <button type="button" id="clear-related">Remove related filter</button>
+        </div>
+        <div class="related-filter investigation" id="investigation" role="group" aria-label="Investigation timeline" hidden>
+          <span>Investigating <strong id="investigation-anchor"></strong></span>
+          <label>Time before and after
+            <select id="investigation-radius">
+              <option value="5">5 minutes</option><option value="15" selected>15 minutes</option>
+              <option value="30">30 minutes</option><option value="60">1 hour</option>
+            </select>
+          </label>
+          <button type="button" id="close-investigation">End investigation</button>
+        </div>
+        <ol id="events"></ol>
+        <div class="log-pagination">
+          <button type="button" id="show-more" hidden>Show more</button>
+          <button type="button" id="show-less" hidden>Show fewer</button>
+        </div>
+        <details id="json-panel" class="json-panel">
+          <summary>View filtered JSON</summary>
+          <div class="json-toolbar"><button type="button" id="copy-json">Copy JSON</button><span id="copy-status" role="status"></span></div>
+          <pre id="event-json" tabindex="0" aria-label="Filtered events JSON"></pre>
+        </details>
+      </div>
     </section>
     <section aria-labelledby="security-heading">
       <div class="section-heading"><h2 id="security-heading">Security operations</h2><p id="soc-freshness">Waiting for security events</p></div>
@@ -107,33 +185,35 @@
         <p id="soc-alert-status">Waiting for the event collector</p>
         <ul id="soc-alerts" hidden></ul>
       </div>
-      <h3>Sensor health</h3>
-      <div class="security-grid">
-        <article class="card security-card">
-          <div class="card-top"><h3>System audit</h3><span id="audit-status" class="badge" hidden></span></div>
-          <p>Auditd records changes to SSH, Nginx, Cloudflare Tunnel, deployment services, and privilege settings.</p>
-          <dl>
-            <div><dt>Watched paths</dt><dd id="audit-watches">—</dd></div>
-            <div><dt>Lost events</dt><dd id="audit-lost">—</dd></div>
-          </dl>
-        </article>
-        <article class="card security-card">
-          <div class="card-top"><h3>SSH protection</h3><span id="ssh-status" class="badge" hidden></span></div>
-          <p>Fail2ban blocks repeated SSH authentication failures.</p>
-          <dl>
-            <div><dt>Active blocks</dt><dd id="ssh-blocked">—</dd></div>
-            <div><dt>Failures since startup</dt><dd id="ssh-failures">—</dd></div>
-          </dl>
-        </article>
-        <article class="card security-card">
-          <div class="card-top"><h3>File integrity</h3><span id="integrity-status" class="badge" hidden></span></div>
-          <p>AIDE compares protected files against the server baseline.</p>
-          <dl>
-            <div><dt>Last scan</dt><dd id="last-scan">—</dd></div>
-            <div><dt>Next scheduled scan</dt><dd id="next-scan">—</dd></div>
-          </dl>
-        </article>
-      </div>
+      <details class="sensor-details">
+        <summary>Sensor health</summary>
+        <div class="security-grid">
+          <article class="card security-card">
+            <div class="card-top"><h3>System audit</h3><span id="audit-status" class="badge" hidden></span></div>
+            <p>Auditd records changes to SSH, Nginx, Cloudflare Tunnel, deployment services, and privilege settings.</p>
+            <dl>
+              <div><dt>Watched paths</dt><dd id="audit-watches">—</dd></div>
+              <div><dt>Lost events</dt><dd id="audit-lost">—</dd></div>
+            </dl>
+          </article>
+          <article class="card security-card">
+            <div class="card-top"><h3>SSH protection</h3><span id="ssh-status" class="badge" hidden></span></div>
+            <p>Fail2ban blocks repeated SSH authentication failures.</p>
+            <dl>
+              <div><dt>Active blocks</dt><dd id="ssh-blocked">—</dd></div>
+              <div><dt>Failures since startup</dt><dd id="ssh-failures">—</dd></div>
+            </dl>
+          </article>
+          <article class="card security-card">
+            <div class="card-top"><h3>File integrity</h3><span id="integrity-status" class="badge" hidden></span></div>
+            <p>AIDE compares protected files against the server baseline.</p>
+            <dl>
+              <div><dt>Last scan</dt><dd id="last-scan">—</dd></div>
+              <div><dt>Next scheduled scan</dt><dd id="next-scan">—</dd></div>
+            </dl>
+          </article>
+        </div>
+      </details>
     </section>
     <section aria-labelledby="host-heading">
       <div class="section-heading"><h2 id="host-heading">Host health</h2><p id="host-uptime"></p></div>
@@ -289,82 +369,6 @@
         <div id="operations-report-summary"></div>
         <h3>Latest matching events</h3>
         <div id="operations-report-events"></div>
-      </div>
-    </section>
-    <section class="activity" aria-labelledby="activity-heading">
-      <div class="section-heading"><h2 id="activity-heading">Event log</h2><div class="event-heading-actions"><p id="event-stream" role="status" hidden></p><p id="event-update"></p><button type="button" id="export-events" disabled>Export JSON</button><button type="button" id="export-csv" disabled>Export CSV</button></div></div>
-      <div class="log-panel">
-        <div class="log-overview">
-          <div class="log-overview-heading">
-            <div><h3>Activity volume</h3><p class="activity-caption">Six time buckets · follows the active filters and time range</p></div>
-            <button type="button" id="clear-filters">Clear filters</button>
-          </div>
-          <div id="activity-chart" class="activity-chart" aria-label="Events by four-hour period"></div>
-          <div class="severity-summary" role="group" aria-label="Filter by event severity">
-            <button type="button" data-severity="info" aria-pressed="false">Info <strong>0</strong></button>
-            <button type="button" data-severity="success" aria-pressed="false">Success <strong>0</strong></button>
-            <button type="button" data-severity="warning" aria-pressed="false">Warning <strong>0</strong></button>
-            <button type="button" data-severity="error" aria-pressed="false">Error <strong>0</strong></button>
-          </div>
-        </div>
-        <div class="log-shortcuts" role="group" aria-label="Event filter presets">
-          <span>Quick filters</span>
-          <button type="button" data-event-preset="" data-levels="warning error">Warnings and errors</button>
-          <button type="button" data-event-preset="Deploy" data-levels="error">Failed deployments</button>
-          <button type="button" data-event-preset="Fail2ban" data-levels="warning">SSH blocks</button>
-          <button type="button" data-event-preset="AIDE" data-levels="warning">Integrity warnings</button>
-        </div>
-        <nav class="log-shortcuts" aria-label="Filter event log by time">
-          <span>Show events from</span>
-          <button type="button" data-range="" aria-pressed="true">All retained</button>
-          <button type="button" data-range="1" aria-pressed="false">1 hour</button>
-          <button type="button" data-range="24" aria-pressed="false">24 hours</button>
-          <button type="button" data-range="48" aria-pressed="false">48 hours</button>
-          <button type="button" data-range="168" aria-pressed="false">7 days</button>
-          <button type="button" data-range="336" aria-pressed="false">14 days</button>
-        </nav>
-        <div class="log-controls">
-          <label><span>Search <kbd aria-hidden="true">/</kbd></span><input id="event-query" type="search" aria-keyshortcuts="/" placeholder="Release, component, or message"></label>
-          <label>Source<select id="event-site"><option value="">All sources</option><option value="server">Server</option></select></label>
-          <label>Category<select id="event-category"><option value="">All categories</option></select></label>
-          <label>Time range<select id="event-range"><option value="">All retained events</option><option value="1">Last hour</option><option value="24">Last 24 hours</option><option value="48">Last 48 hours</option><option value="168">Last 7 days</option><option value="336">Last 14 days</option></select></label>
-          <label>Order<select id="event-order"><option value="newest">Newest first</option><option value="oldest">Oldest first</option></select></label>
-          <label>Events to show<select id="event-page-size"><option value="5">5</option><option value="10">10</option><option value="25">25</option><option value="50">50</option></select></label>
-        </div>
-        <div class="log-shortcuts" id="source-breakdown" role="group" aria-label="Event counts by source" hidden></div>
-        <div class="log-toolbar">
-          <p class="log-count" id="event-count" role="status"></p>
-          <button type="button" id="reset-empty-results" hidden>Reset filters</button>
-          <div class="log-display-controls">
-            <button type="button" id="hide-page-loads" aria-pressed="false">Hide page loads</button>
-            <button type="button" id="pinned-events" aria-pressed="false">Pinned only <span id="pinned-count">0</span></button>
-            <button type="button" id="event-utc" aria-pressed="false">UTC timestamps</button>
-          </div>
-        </div>
-        <div class="related-filter" id="related-filter" hidden>
-          <span>Related events: <strong id="related-value"></strong></span>
-          <button type="button" id="clear-related">Remove related filter</button>
-        </div>
-        <div class="related-filter investigation" id="investigation" role="group" aria-label="Investigation timeline" hidden>
-          <span>Investigating <strong id="investigation-anchor"></strong></span>
-          <label>Time before and after
-            <select id="investigation-radius">
-              <option value="5">5 minutes</option><option value="15" selected>15 minutes</option>
-              <option value="30">30 minutes</option><option value="60">1 hour</option>
-            </select>
-          </label>
-          <button type="button" id="close-investigation">End investigation</button>
-        </div>
-        <ol id="events"></ol>
-        <div class="log-pagination">
-          <button type="button" id="show-more" hidden>Show more</button>
-          <button type="button" id="show-less" hidden>Show fewer</button>
-        </div>
-        <details id="json-panel" class="json-panel">
-          <summary>View filtered JSON</summary>
-          <div class="json-toolbar"><button type="button" id="copy-json">Copy JSON</button><span id="copy-status" role="status"></span></div>
-          <pre id="event-json" tabindex="0" aria-label="Filtered events JSON"></pre>
-        </details>
       </div>
     </section>
   </main>
